@@ -105,7 +105,7 @@ namespace Quinn
                                     {
                                         new Vector2((int)from.X, (int)from.Y + 4f),
                                         new Vector2( (int)to.X, (int)to.Y + 4f)
-                                    }, new ColorBGRA(0, 247, 255, 90));
+                                    }, new ColorBGRA(235, 224, 69, 90));
             // Vector2 sPos = startPosition;
             //Drawing.DrawLine((int)from.X, (int)from.Y + 9f, (int)to.X, (int)to.Y + 9f, 9f, color);
 
