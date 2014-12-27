@@ -32,7 +32,7 @@ namespace GragasTheDrunkCarry
             R.SetSkillshot(0.3f, 700, 1000, false, SkillshotType.SkillshotCircle);
             Config = new Menu("Gragas", "Gragas", true);
             var targetSelectorMenu = new Menu("Target Selector", "Target Selector");
-            SimpleTs.AddToMenu(targetSelectorMenu);
+            TargetSelector.AddToMenu(targetSelectorMenu);
             Config.AddSubMenu(targetSelectorMenu);
             Config.AddSubMenu(new Menu("Orbwalking", "Orbwalking"));
             Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu("Orbwalking"));
@@ -86,7 +86,7 @@ namespace GragasTheDrunkCarry
 
         static void Game_OnGameUpdate(EventArgs args)
         {
-            var vTarget = SimpleTs.GetTarget(Q.Range, SimpleTs.DamageType.Magical);
+            var vTarget = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
             if (Orbwalker.ActiveMode.ToString().ToLower() == "combo")
             {
                 if (Config.Item("UseQ").GetValue<bool>() && Q.IsReady())
@@ -182,7 +182,7 @@ namespace GragasTheDrunkCarry
 
         private static void InsecCombo(Vector2 pos)
         {
-            var vTarget = SimpleTs.GetTarget(Q.Range, SimpleTs.DamageType.Magical);
+            var vTarget = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
             if (!(vTarget.Distance(pos) <= 700)) return;
             var newpos = pos.Extend(vTarget.Position.To2D(), 700);
             Q.Cast(newpos, true);
@@ -207,7 +207,7 @@ namespace GragasTheDrunkCarry
         }
         static void Drawing_OnEndScene(EventArgs args)
         {
-            var vTarget = SimpleTs.GetTarget(Q.Range, SimpleTs.DamageType.Magical);
+            var vTarget = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
             if (vTarget != null && R.IsReady() && Config.Item("DrawIN").GetValue<bool>())
             {
                 Utility.DrawCircle(Rpos.To3D(), 50, Color.Red);

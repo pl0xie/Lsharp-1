@@ -1,1 +1,15 @@
 C:\Users\Dudi\Documents\GitHub\Lsharp\GragasTheDrunkCarry\GragasTheDrunkCarry\bin\Release\GragasTheDrunkCarry.exe.config
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\GragasTheDrunkCarry\GragasTheDrunkCarry\bin\Release\GragasTheDrunkCarry.exe.config
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\GragasTheDrunkCarry\GragasTheDrunkCarry\bin\Release\GragasTheDrunkCarry.exe
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\GragasTheDrunkCarry\GragasTheDrunkCarry\bin\Release\GragasTheDrunkCarry.pdb
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\GragasTheDrunkCarry\GragasTheDrunkCarry\bin\Release\LeagueSharp.Common.dll
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\GragasTheDrunkCarry\GragasTheDrunkCarry\bin\Release\LeagueSharp.dll
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\GragasTheDrunkCarry\GragasTheDrunkCarry\bin\Release\SharpDX.dll
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\GragasTheDrunkCarry\GragasTheDrunkCarry\bin\Release\SharpDX.Direct3D9.dll
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\GragasTheDrunkCarry\GragasTheDrunkCarry\bin\Release\SharpDX.Toolkit.dll
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\GragasTheDrunkCarry\GragasTheDrunkCarry\bin\Release\SharpDX.Toolkit.Graphics.dll
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\GragasTheDrunkCarry\GragasTheDrunkCarry\bin\Release\SharpDX.Toolkit.xml
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\GragasTheDrunkCarry\GragasTheDrunkCarry\bin\Release\SharpDX.Toolkit.Graphics.xml
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\GragasTheDrunkCarry\GragasTheDrunkCarry\obj\Debug\GragasTheDrunkCarry.csprojResolveAssemblyReference.cache
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\GragasTheDrunkCarry\GragasTheDrunkCarry\obj\Debug\GragasTheDrunkCarry.exe
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\GragasTheDrunkCarry\GragasTheDrunkCarry\obj\Debug\GragasTheDrunkCarry.pdb
