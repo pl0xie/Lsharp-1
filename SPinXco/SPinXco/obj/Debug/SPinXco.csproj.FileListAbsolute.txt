@@ -1,0 +1,8 @@
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\SPinXco\SPinXco\bin\Debug\SPinXco.exe.config
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\SPinXco\SPinXco\bin\Debug\SPinXco.exe
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\SPinXco\SPinXco\bin\Debug\SPinXco.pdb
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\SPinXco\SPinXco\obj\Debug\SPinXco.csprojResolveAssemblyReference.cache
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\SPinXco\SPinXco\obj\Debug\SPinXco.exe
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\SPinXco\SPinXco\obj\Debug\SPinXco.pdb
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\SPinXco\SPinXco\bin\Debug\PVPNetConnect.dll
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\SPinXco\SPinXco\bin\Debug\PVPNetConnect.pdb

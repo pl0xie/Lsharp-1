@@ -53,7 +53,7 @@ class Program
 
         Config = new Menu("Bird Brain", "Quinn", true);
         var targetSelectorMenu = new Menu("Target Selector", "Target Selector");
-        SimpleTs.AddToMenu(targetSelectorMenu);
+        TargetSelector.AddToMenu(targetSelectorMenu);
         Config.AddSubMenu(targetSelectorMenu);
         Config.AddSubMenu(new Menu("Orbwalking", "Orbwalking"));
         Orbwalker = new Orbwalking.Orbwalker(Config.SubMenu("Orbwalking"));
@@ -96,7 +96,7 @@ class Program
 
     private static void Harras()
     {
-        var vTarget = SimpleTs.GetTarget(Q.Range, SimpleTs.DamageType.Physical);
+        var vTarget = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical);
         if (Q.IsReady() && Config.Item("UseQH").GetValue<bool>())
         {
             Q.Cast(vTarget);
@@ -115,7 +115,7 @@ class Program
         var damage = AA;
        
         if (_igniteSlot != SpellSlot.Unknown &&
-    Player.SummonerSpellbook.CanUseSpell(_igniteSlot) == SpellState.Ready)
+    Player.Spellbook.CanUseSpell(_igniteSlot) == SpellState.Ready)
             damage += ObjectManager.Player.GetSummonerSpellDamage(target, Damage.SummonerSpell.Ignite);
         
         if (Items.HasItem(3153) && Items.CanUseItem(3153))
@@ -166,7 +166,7 @@ class Program
     
     private static void Combo()
     {
-        var vTarget = SimpleTs.GetTarget(E.Range + 100, SimpleTs.DamageType.Physical);
+        var vTarget = TargetSelector.GetTarget(E.Range + 100, TargetSelector.DamageType.Physical);
         var ultdamage = Player.CalcDamage(vTarget, Damage.DamageType.Physical, (75 + (R.Level * 55) + (Player.FlatPhysicalDamageMod * 0.5)) * (2 - (vTarget.Health / vTarget.MaxHealth)));
         var AA = Player.CalcDamage(vTarget, Damage.DamageType.Physical,
             Player.FlatPhysicalDamageMod + Player.BaseAttackDamage);
