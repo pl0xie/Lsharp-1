@@ -225,7 +225,6 @@ namespace GragasTheDrunkCarry
                 Utility.DrawCircle(Player.Position, R.Range, Color.DarkSlateGray);
             }
             
-            
         }
     }
 
