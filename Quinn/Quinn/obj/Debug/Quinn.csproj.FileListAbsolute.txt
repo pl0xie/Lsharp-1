@@ -1,6 +1,4 @@
-C:\Users\Dudi\Documents\GitHub\Lsharp\Quinn\Quinn\bin\Release\Quinn.exe.config
 C:\Users\Dudi\Desktop\Lsharp\Lsharp\Quinn\Quinn\bin\Release\Quinn.exe.config
-C:\Users\Dudi\Desktop\Lsharp\Lsharp\Quinn\Quinn\obj\Debug\Quinn.csprojResolveAssemblyReference.cache
 C:\Users\Dudi\Desktop\Lsharp\Lsharp\Quinn\Quinn\bin\Release\Quinn.exe
 C:\Users\Dudi\Desktop\Lsharp\Lsharp\Quinn\Quinn\bin\Release\Quinn.pdb
 C:\Users\Dudi\Desktop\Lsharp\Lsharp\Quinn\Quinn\bin\Release\clipper_library.dll
@@ -11,7 +9,9 @@ C:\Users\Dudi\Desktop\Lsharp\Lsharp\Quinn\Quinn\bin\Release\SharpDX.Direct3D9.dl
 C:\Users\Dudi\Desktop\Lsharp\Lsharp\Quinn\Quinn\bin\Release\SharpDX.dll
 C:\Users\Dudi\Desktop\Lsharp\Lsharp\Quinn\Quinn\bin\Release\SharpDX.Toolkit.dll
 C:\Users\Dudi\Desktop\Lsharp\Lsharp\Quinn\Quinn\bin\Release\SharpDX.Toolkit.Graphics.dll
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\Quinn\Quinn\bin\Release\LeagueSharp.xml
 C:\Users\Dudi\Desktop\Lsharp\Lsharp\Quinn\Quinn\bin\Release\SharpDX.Toolkit.xml
 C:\Users\Dudi\Desktop\Lsharp\Lsharp\Quinn\Quinn\bin\Release\SharpDX.Toolkit.Graphics.xml
+C:\Users\Dudi\Desktop\Lsharp\Lsharp\Quinn\Quinn\obj\Debug\Quinn.csprojResolveAssemblyReference.cache
 C:\Users\Dudi\Desktop\Lsharp\Lsharp\Quinn\Quinn\obj\Debug\Quinn.exe
 C:\Users\Dudi\Desktop\Lsharp\Lsharp\Quinn\Quinn\obj\Debug\Quinn.pdb
