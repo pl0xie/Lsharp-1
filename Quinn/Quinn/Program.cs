@@ -44,10 +44,6 @@ class Program
 
     private static void OnGameLoad(EventArgs args)
     {
-        if (Player.BaseSkinName != "Quinn")
-        {
-            return;
-        }
         Player = ObjectManager.Player;
 
         Q = new Spell(SpellSlot.Q, 1010);
