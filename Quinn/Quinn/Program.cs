@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using LeagueSharp;
@@ -34,7 +36,7 @@ class Program
                         .Where(ene => !ene.IsDead && ene.IsEnemy && ene.IsVisible))
             {
                 hpi.unit = enemy;
-                hpi.drawDmg(calcDamage(enemy), Color.DarkGreen);
+                hpi.drawDmg(CalcDamage(enemy), Color.DarkGreen);
 
             }
         
@@ -42,6 +44,10 @@ class Program
 
     private static void OnGameLoad(EventArgs args)
     {
+        if (Player.BaseSkinName != "Quinn")
+        {
+            return;
+        }
         Player = ObjectManager.Player;
 
         Q = new Spell(SpellSlot.Q, 1010);
@@ -64,9 +70,11 @@ class Program
         Config.SubMenu("Combo").AddItem(new MenuItem("Force", "Force orbwalk target?").SetValue(false));
         Config.SubMenu("Combo").AddItem(new MenuItem("UseER", "Use ER valor mode (burst)").SetValue(true));
         Config.SubMenu("Combo").AddItem(new MenuItem("Double", "Double Harrier").SetValue(true));
+        Config.SubMenu("Combo").AddItem(new MenuItem("SuperE", "enemy health % for E").SetValue(new Slider(50, 1, 100)));
         Config.AddSubMenu(new Menu("Harras", "Harras"));
         Config.SubMenu("Harras").AddItem(new MenuItem("UseQH", "Use Q?")).SetValue(true);
         Config.SubMenu("Harras").AddItem(new MenuItem("UseEH", "Use E?")).SetValue(true);
+        Config.SubMenu("Combo").AddItem(new MenuItem("UsePackets", "Use Packets?").SetValue(false));
         Config.AddToMainMenu();
 
         _igniteSlot = Player.GetSpellSlot("SummonerDot");
@@ -91,7 +99,7 @@ class Program
     public static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
     {
         if (E.IsReady() && gapcloser.Sender.IsValidTarget(E.Range) && !IsValorMode())
-            E.CastOnUnit(gapcloser.Sender);
+            E.CastOnUnit(gapcloser.Sender, UsePackets());
     }
 
     private static void Harras()
@@ -99,15 +107,15 @@ class Program
         var vTarget = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical);
         if (Q.IsReady() && Config.Item("UseQH").GetValue<bool>())
         {
-            Q.Cast(vTarget);
+            Q.Cast(vTarget, UsePackets());
         }
         if (E.IsReady() && Config.Item("UseEH").GetValue<bool>())
         {
-            E.CastOnUnit(vTarget, true);
+            E.CastOnUnit(vTarget, UsePackets());
         }
         
     }
-    private static int calcDamage(Obj_AI_Hero target)
+    private static int CalcDamage(Obj_AI_Hero target)
     {
         //var vTarget = SimpleTs.GetTarget(Q.Range, SimpleTs.DamageType.Physical);
         // normal damage 2 Auto Attacks
@@ -166,23 +174,23 @@ class Program
     
     private static void Combo()
     {
-        var vTarget = TargetSelector.GetTarget(E.Range + 100, TargetSelector.DamageType.Physical);
+        var vTarget = TargetSelector.GetTarget(E.Range + 550, TargetSelector.DamageType.Physical);
         var ultdamage = Player.CalcDamage(vTarget, Damage.DamageType.Physical, (75 + (R.Level * 55) + (Player.FlatPhysicalDamageMod * 0.5)) * (2 - (vTarget.Health / vTarget.MaxHealth)));
         var AA = Player.CalcDamage(vTarget, Damage.DamageType.Physical,
             Player.FlatPhysicalDamageMod + Player.BaseAttackDamage);
         //if calc damage + another Auto attack (3)
-        if (calcDamage(vTarget) + AA*3 > vTarget.Health && Config.Item("UseR").GetValue<bool>())
+        if (CalcDamage(vTarget) + AA*3 > vTarget.Health && Config.Item("UseR").GetValue<bool>())
         {
             if (!IsValorMode() && R.IsReady()) // if killable enters valor
             {
                 if (E.IsReady() && !vTarget.HasBuff("QuinnW") || vTarget.Distance(Player) <= 375 && !vTarget.HasBuff("QuinnW"))
                 {
-                    R.Cast();
+                    R.Cast(UsePackets());
                 }
             }
             if (R.IsReady() && IsValorMode() && Player.Distance(vTarget) <= R.Range && ultdamage > vTarget.Health)
             {
-                R.Cast(); //if return to human will kill him.. 
+                R.Cast(UsePackets()); //if return to human will kill him.. 
             }
 
 
@@ -194,11 +202,11 @@ class Program
         {
             if (IsValorMode() && Player.Distance(vTarget) <= 375)
             {
-                Q.Cast();
+                Q.Cast(UsePackets());
             }
             if (!IsValorMode() && Player.Distance(vTarget) <= Q.Range)
             {
-                Q.Cast(vTarget);
+                Q.Cast(vTarget, UsePackets());
             }
         }
         if (Config.Item("UseE").GetValue<bool>() && E.IsReady())
@@ -211,42 +219,57 @@ class Program
                 if ( vTarget.Distance(Player) < R.Range &&
                     Config.Item("UseER").GetValue<bool>())
                 {
-                    if ((ultdamage + passive) > vTarget.Health || (ultdamage + passive) > calcDamage(vTarget))
+                    if ((ultdamage + passive) > vTarget.Health || (ultdamage + passive) > CalcDamage(vTarget))
                     {
-                        R.Cast();
-                        E.CastOnUnit(vTarget);
+                        R.Cast(UsePackets());
+                        E.CastOnUnit(vTarget, UsePackets());
                     }
                 }
                 else
                 {
-                    E.CastOnUnit(vTarget);
+                    E.CastOnUnit(vTarget, UsePackets());
                 }
             }
             else // human form
             {
+                var Minion = MinionManager.GetMinions(Player.ServerPosition, 550, MinionTypes.All, MinionTeam.NotAlly);
+                if (vTarget.Distance(Player) > E.Range && CalcDamage(vTarget) - E.GetDamage(vTarget) > vTarget.Health)
+                {
+                    foreach (var minion in Minion.Where(minion => minion.ServerPosition.Extend(Player.ServerPosition, 550).Distance(vTarget.ServerPosition) < Player.Distance(vTarget) - Player.MoveSpeed/2)) {
+                        
+                        E.CastOnUnit(minion, UsePackets());
+                        Game.PrintChat("using E on minion");
+                    }
+                }
+
+
                 if (Config.Item("Double").GetValue<bool>())
                 {
                     if (!vTarget.HasBuff("QuinnW"))
                     {
-                        E.CastOnUnit(vTarget, true);
+                        E.CastOnUnit(vTarget, UsePackets());
                     }
                 }
                 else
                 {
-                    E.CastOnUnit(vTarget, true);
+                    E.CastOnUnit(vTarget, UsePackets());
                 }
             }
         }
         //if (Config.Item("Force").GetValue<bool>() && IsValorMode())
         //{
-        //    Orbwalker.SetOrbwalkingPoint(vTarget.Position);
+        //    Orbwalker.SetOrbwalkingPoint(vTarget.ServerPosition);
         //}
 
     }
-
     private static bool IsValorMode()
     {
         return ObjectManager.Player.Spellbook.GetSpell(SpellSlot.R).Name == "QuinnRFinale";
+    }
+
+    private static bool UsePackets()
+    {
+        return Config.Item("UsePackets").GetValue<bool>();
     }
 }
 }
