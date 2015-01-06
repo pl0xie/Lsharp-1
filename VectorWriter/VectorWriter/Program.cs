@@ -46,10 +46,8 @@ namespace VectorWriter
                         {
                             sw.WriteLine("new Vector2(" + Game.CursorPos.To2D().X + "," + Game.CursorPos.Y + ");" );
                             sw.Close();
-                        }
-                    
+                        }                
                 }
-
             }
         }
     }
