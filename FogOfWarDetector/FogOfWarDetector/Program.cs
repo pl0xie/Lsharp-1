@@ -49,6 +49,7 @@ namespace FogOfWarDetector
                 Drawing.DrawCircle(Near.Position, 1200, Color.Red);
                 var pos = Near.Position.To2D().Extend(Player.Position.To2D(), 1200);
                 var Mpos = Near.Position.To2D() - pos;
+
                 Mpos.Perpendicular();
                 var la = Mpos.Extend(Mpos, 600);
                 Drawing.DrawLine(Mpos, la, 10, Color.White);

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{34C5D705-CD39-4173-9779-3C7BC81C00C8}</ProjectGuid>
+    <ProjectGuid>{BD3273B2-F967-4407-9B32-A8EC3E3156E9}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Quinn</RootNamespace>
-    <AssemblyName>Quinn</AssemblyName>
+    <RootNamespace>LaneUtility</RootNamespace>
+    <AssemblyName>LaneUtility</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <PreBuildEvent />
@@ -35,12 +35,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="clipper_library">
-      <HintPath>C:\Users\Dudi\Downloads\LeagueSharp\\System\clipper_library.dll</HintPath>
-    </Reference>
-    <Reference Include="DevCommom">
-      <HintPath>C:\Users\Dudi\Downloads\LeagueSharp\\System\DevCommom.dll</HintPath>
-    </Reference>
     <Reference Include="LeagueSharp">
       <HintPath>C:\Users\Dudi\Downloads\LeagueSharp\\System\LeagueSharp.dll</HintPath>
     </Reference>
@@ -50,12 +44,8 @@
     <Reference Include="SharpDX">
       <HintPath>C:\Users\Dudi\Downloads\LeagueSharp\\System\SharpDX.dll</HintPath>
     </Reference>
-    <Reference Include="SharpDX.Direct3D9, Version=2.5.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Users\Dudi\Downloads\LeagueSharp\\System\SharpDX.Direct3D9.dll</HintPath>
-    </Reference>
     <Reference Include="SimpleLib">
-      <HintPath>..\..\..\..\..\Downloads\LeagueSharp\System\SimpleLib.dll</HintPath>
+      <HintPath>C:\Users\Dudi\Downloads\LeagueSharp\\System\SimpleLib.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -67,7 +57,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HpBarIndicator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

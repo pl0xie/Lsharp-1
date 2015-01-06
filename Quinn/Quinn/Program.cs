@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SharpDX;
+using SimpleLib;
 using Color = System.Drawing.Color;
 
 namespace Quinn
@@ -37,8 +38,9 @@ class Program
             {
                 hpi.unit = enemy;
                 hpi.drawDmg(CalcDamage(enemy), Color.DarkGreen);
-
             }
+        
+
         
     }
 
