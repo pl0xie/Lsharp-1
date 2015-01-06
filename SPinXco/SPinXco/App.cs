@@ -17,7 +17,7 @@ namespace SPinXco
         public void AppTest()
         {
             pvp = new PVPNetConnection();
-            pvp.Connect("tryme123xxx1", "13XXXX6xx", Region.NA, "4.21.14");
+            pvp.Connect("tryme123xxx1", "XXXXXXXxx", Region.NA, "4.21.14");
 
             pvp.OnLogin += pvp_OnLogin;
             Console.ReadLine();
