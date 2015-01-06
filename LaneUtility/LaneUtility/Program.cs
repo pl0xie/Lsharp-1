@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
+using System.Drawing.Text;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -58,11 +60,7 @@ namespace LaneUtility
             {
                 return;
             }
-
-            var EnemyMinion = MinionManager.GetMinions(5000, MinionTypes.All, MinionTeam.Enemy);
-            var AllyMinion = MinionManager.GetMinions(5000, MinionTypes.All, MinionTeam.Ally);
-
-
+           
             if (!PolyTop.IsOutside(Player.Position.To2D()))
             {
                 CheckPolygon(PolyTop);
@@ -81,7 +79,7 @@ namespace LaneUtility
                     }
                 }
             }
-
+            /*
             var Etotalhealth = EnemyMinion.Aggregate(0.0, (current, minion) => current + minion.Health);
             var Atotalhealth = AllyMinion.Aggregate(0.0, (current, minion) => current + minion.Health);
 
@@ -92,37 +90,46 @@ namespace LaneUtility
                     Player.IssueOrder(GameObjectOrder.AttackUnit, EnemyMinion.FirstOrDefault());
                 }         
             }
+             */
         }
-
-        private static void CheckPolygon(Geometry.Polygon Poly)
+    private static void CheckPolygon(Geometry.Polygon Poly)
         {
             var enemyhealth = 0.0;
             var allyhealth = 0.0;
-            var enemycount = 0.0;
             var allycount = 0.0;
+
+            List<Obj_AI_Minion> enemyList = new List<Obj_AI_Minion>();
+
             //maybe add distance check for ally minions above 1000 are not relevent !
-            foreach (var minion in ObjectManager.Get<Obj_AI_Base>().Where(minion => !Poly.IsOutside(minion.Position.To2D()) && minion.IsMinion)) {
+            foreach (var minion in ObjectManager.Get<Obj_AI_Minion>().Where(minion => !Poly.IsOutside(minion.Position.To2D()) && minion.IsValidTarget()))
+            {
                 if (minion.IsEnemy)
                 {
-                    enemyhealth += minion.Health;
-                    enemycount++;
+                    enemyList.Add(minion);
+                    enemyhealth += minion.Health;               
                 }
-                if (minion.IsAlly)
+                else
                 {
-                    allyhealth += minion.Health;
-                    allycount++;
+                    if (minion.IsAlly)
+                    {
+                        allyhealth += minion.Health;
+                        allycount++;
+                    }
                 }
-                if (enemyhealth > (1 / allycount / 2 + 1) * allyhealth)
-                    // example if enemy health is bigger then allyhealth + 1 half minion extra
-                {
-                    Player.IssueOrder(GameObjectOrder.AttackUnit, minion);
-                }
-
-                Game.PrintChat("Enemy Health : " + enemyhealth);
-                Game.PrintChat("Enemy count : " + enemycount);
-                Game.PrintChat("ally Health : " + allyhealth);
-                Game.PrintChat("ally Count : " + allycount);
             }
+
+            Game.PrintChat("Enemy Health : " + enemyhealth);
+            Game.PrintChat("Enemy count : " + enemyList.Count);
+            Game.PrintChat("ally Health : " + allyhealth);
+            Game.PrintChat("ally Count : " + allycount);
+
+            //attack logic comes here you can use enemyList to fine the target
+            if (enemyhealth > (1 / allycount / 2 + 1) * allyhealth)
+            // example if enemy health is bigger then allyhealth + 1 half minion extra
+            {
+                Player.IssueOrder(GameObjectOrder.AttackUnit, enemyList.OrderBy(minion => minion.Health).First());
+            }
+
         }
         private static void PolyTopPos()
         {
