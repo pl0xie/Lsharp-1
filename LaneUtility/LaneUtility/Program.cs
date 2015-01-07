@@ -130,9 +130,9 @@ namespace LaneUtility
                 }
             }
 
-            Game.PrintChat("Enemy Health : " + enemyhealth);
+            //Game.PrintChat("Enemy Health : " + enemyhealth);
             //Game.PrintChat("Enemy count : " + enemyList.Count);
-            Game.PrintChat("ally Health : " + allyhealth);
+            //Game.PrintChat("ally Health : " + allyhealth);
             //Game.PrintChat("ally Count : " + allycount);
 
             //attack logic comes here you can use enemyList to fine the target
