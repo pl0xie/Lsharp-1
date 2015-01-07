@@ -111,12 +111,13 @@ namespace Over9000_Rockets
                         }
                         else
                         {
-                            var pos = gapcloser.End.Extend(
-                                Player.Position, Player.Distance(gapcloser.End) + W.Range);
-
-                            if (!pos.IsWall() && !pos.UnderTurret(true) && pos.CountEnemysInRange(700) <= 1 && pos.IsValid()) //try to find better escape
+                            Vector2 dada = new Vector2(gapcloser.End.Extend(
+                                Player.Position, Player.Distance(gapcloser.End) + W.Range).X, gapcloser.End.Extend(
+                                Player.Position, Player.Distance(gapcloser.End) + W.Range).Y);
+                            dada.Normalize();         
+                            if (!dada.IsWall() && !dada.To3D().UnderTurret(true) && dada.To3D().CountEnemysInRange(700) <= 1) //try to find better escape
                             {
-                                W.Cast(pos);
+                                W.Cast(dada);
                             }
                             else
                             {
@@ -167,8 +168,8 @@ namespace Over9000_Rockets
             {
                 if (ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsEnemy && hero.Distance(Player.Position) <= W.Range && CalcDamage(hero) > hero.Health).ToList().Count == 0)
                 {
-                    var angle = Geometry.DegreeToRadian(45);
-                    for (var i = 1; i < 9; i++)
+                    var angle = Geometry.DegreeToRadian(15);
+                    for (var i = 1; i < 25; i++)
                     {
                         var newpos = pos.To2D().RotateAroundPoint(Player.Position.To2D(), angle * i);
                         if (!pos.UnderTurret(true) && pos.UnderTurret(false))
