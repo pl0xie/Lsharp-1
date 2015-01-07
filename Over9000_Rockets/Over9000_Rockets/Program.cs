@@ -66,15 +66,18 @@ namespace Over9000_Rockets
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Game.OnGameUpdate += game_Update;
             Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
+            Game.PrintChat(R.Instance.SData.SpellTotalTime.ToString());
 
         }
 
         static void Obj_AI_Base_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
+
             if (sender.BaseSkinName == "Zed" && sender.IsEnemy && args.SData.Name.ToLower() == "zedult")
             {
                 ZedTime = Game.Time;
             }
+
         }
 
         private static void game_Update(EventArgs args)
@@ -111,7 +114,7 @@ namespace Over9000_Rockets
                             var pos = gapcloser.End.Extend(
                                 Player.Position, Player.Distance(gapcloser.End) + W.Range);
 
-                            if (!pos.IsWall() && !pos.UnderTurret(true) && pos.CountEnemysInRange(700) <= 1) //try to find better escape
+                            if (!pos.IsWall() && !pos.UnderTurret(true) && pos.CountEnemysInRange(700) <= 1 && pos.IsValid()) //try to find better escape
                             {
                                 W.Cast(pos);
                             }
@@ -162,7 +165,7 @@ namespace Over9000_Rockets
             }
             if (enemycount >= 3 || zed == 1)
             {
-                if (ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsEnemy && hero.Distance(Player.Position) < W.Range && CalcDamage(hero) > hero.Health).ToList().Count == 0)
+                if (ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsEnemy && hero.Distance(Player.Position) <= W.Range && CalcDamage(hero) > hero.Health).ToList().Count == 0)
                 {
                     var angle = Geometry.DegreeToRadian(45);
                     for (var i = 1; i < 9; i++)
