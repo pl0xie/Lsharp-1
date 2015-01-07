@@ -136,14 +136,10 @@ namespace LaneUtility
             //Game.PrintChat("ally Count : " + allycount);
 
             //attack logic comes here you can use enemyList to fine the target
-            if (enemyhealth > (allyhealth + damage))
+            if (enemyhealth > (allyhealth + damage) && !Player.IsWindingUp)
             // example if enemy health is bigger then allyhealth + 1 half minion extra
             {
                 Player.IssueOrder(GameObjectOrder.AttackUnit, enemyList.OrderBy(minion => minion.Health).First());
-            }
-            else
-            {
-                Player.IssueOrder(GameObjectOrder.MoveTo, Game.CursorPos);
             }
 
         }
