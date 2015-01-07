@@ -17,6 +17,8 @@ namespace Over9000_Rockets
         public static Menu Config;
         private static Obj_AI_Hero Player;
         private static SpellSlot _igniteSlot;
+        private static float Time = 10;
+        
 
 
 
@@ -81,6 +83,7 @@ namespace Over9000_Rockets
         {
             if (W.IsReady())
             {
+                Time = Game.Time;
                 foreach (var hero in ObjectManager.Get<Obj_AI_Hero>())
                 {
                     if (CalcDamage(gapcloser.Sender) > gapcloser.Sender.Health * 1.5) //NO YOU DONT.. run away ^^
@@ -112,7 +115,7 @@ namespace Over9000_Rockets
             }
             else //if not killable or more then 2 enemies around..
             {
-                if (R.IsReady() && (W.Instance.CooldownExpires - Game.Time > W.Instance.Cooldown - 0.5) && (CalcDamage(gapcloser.Sender) < gapcloser.Sender.Health) || Player.CountEnemysInRange(1000) > 2)
+                if (R.IsReady() && (Game.Time - Time > 1) && (CalcDamage(gapcloser.Sender) < gapcloser.Sender.Health) || Player.CountEnemysInRange(1000) > 2)
                 {
                     R.CastOnUnit(gapcloser.Sender, UsePackets());
                 }
