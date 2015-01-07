@@ -143,7 +143,8 @@ namespace Over9000_Rockets
                 {
                     enemycount++;
                 }
-                if (Player.HasBuff("zedulttargetmark", true) && enemy.BaseSkinName == "Zed" && enemy.IsValid)
+
+                if (Player.HasBuff("zedulttargetmark", true) && enemy.BaseSkinName == "Zed" && enemy.IsTargetable)
                 {
                     zed = 1;
                 }
@@ -209,12 +210,12 @@ namespace Over9000_Rockets
         private static void Combo()
         {
             var vTarget = TargetSelector.GetTarget(W.Range + Player.AttackRange, TargetSelector.DamageType.Physical);
-
+            Escape();
             if (CalcDamage(vTarget) > vTarget.Health && W.IsReady() && vTarget.CountEnemysInRange(700) < 3 && !vTarget.Position.UnderTurret(true))
             {
                 W.Cast(vTarget.Position);
             }
-            Escape();
+            
             if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(Player.Position) < Player.AttackRange) //Q Logic
             {
                 Q.Cast(UsePackets());
@@ -225,7 +226,7 @@ namespace Over9000_Rockets
                 E.CastOnUnit(vTarget, UsePackets());
             }
 
-            if (Config.Item("UseR").GetValue<bool>() && R.IsReady() && vTarget.Distance(Player.Position) < R.Range && R.GetDamage(vTarget) > vTarget.Health + 50)
+            if (Config.Item("UseR").GetValue<bool>() && R.IsReady() && vTarget.Distance(Player.Position) < R.Range && R.GetDamage(vTarget) > vTarget.Health)
             {
                 R.CastOnUnit(vTarget, UsePackets());
             }
