@@ -66,7 +66,6 @@ namespace Over9000_Rockets
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Game.OnGameUpdate += game_Update;
             Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
-            Game.PrintChat(R.Instance.SData.SpellTotalTime.ToString());
 
         }
 
