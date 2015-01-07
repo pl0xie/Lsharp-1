@@ -112,7 +112,7 @@ namespace Over9000_Rockets
             }
             else //if not killable or more then 2 enemies around..
             {
-                if (R.IsReady() && (CalcDamage(gapcloser.Sender) < gapcloser.Sender.Health) || Player.CountEnemysInRange(1000) > 2)
+                if (R.IsReady() && (W.Instance.CooldownExpires - Game.Time > W.Instance.Cooldown - 0.5) && (CalcDamage(gapcloser.Sender) < gapcloser.Sender.Health) || Player.CountEnemysInRange(1000) > 2)
                 {
                     R.CastOnUnit(gapcloser.Sender, UsePackets());
                 }
@@ -132,6 +132,7 @@ namespace Over9000_Rockets
         private static void Escape()
         {
             var enemycount = 0;
+            var zed = 0;
             var pos = Player.Position.To2D().Extend(Player.Direction.To2D(), W.Range).To3D();
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
             {
@@ -139,8 +140,13 @@ namespace Over9000_Rockets
                 {
                     enemycount++;
                 }
+                if (Player.HasBuff("zedulttargetmark", true) && enemy.BaseSkinName == "Zed" && enemy.IsValid)
+                {
+                    zed = 1;
+                }
+
             }
-            if (enemycount >= 3)
+            if (enemycount >= 3 || zed == 1)
             {
                 if (ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsEnemy && hero.Distance(Player.Position) < W.Range && CalcDamage(hero) > hero.Health).ToList().Count == 0)
                 {
