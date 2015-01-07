@@ -18,6 +18,7 @@ namespace Over9000_Rockets
         private static Obj_AI_Hero Player;
         private static SpellSlot _igniteSlot;
         private static float Time = 10;
+        private static float ZedTime = 10;
         
 
 
@@ -64,7 +65,16 @@ namespace Over9000_Rockets
             _igniteSlot = Player.GetSpellSlot("SummonerDot");
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Game.OnGameUpdate += game_Update;
+            Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
 
+        }
+
+        static void Obj_AI_Base_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+            if (sender.BaseSkinName == "Zed" && sender.IsEnemy && args.SData.Name.ToLower() == "zedult")
+            {
+                ZedTime = Game.Time;
+            }
         }
 
         private static void game_Update(EventArgs args)
@@ -139,7 +149,7 @@ namespace Over9000_Rockets
             var pos = Player.Position.To2D().Extend(Player.Direction.To2D(), W.Range).To3D();
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
             {
-                if (enemy.IsEnemy && Player.Distance(enemy) < enemy.AttackRange)
+                if (enemy.IsEnemy && Player.Distance(enemy) < enemy.AttackRange + enemy.BoundingRadius + Player.BoundingRadius + 50)
                 {
                     enemycount++;
                 }
@@ -171,6 +181,7 @@ namespace Over9000_Rockets
                         }
                     }
                 }
+                
             }
 
         }
@@ -229,6 +240,17 @@ namespace Over9000_Rockets
             if (Config.Item("UseR").GetValue<bool>() && R.IsReady() && vTarget.Distance(Player.Position) < R.Range && R.GetDamage(vTarget) > vTarget.Health)
             {
                 R.CastOnUnit(vTarget, UsePackets());
+            }
+
+            if (Player.HasBuff("zedulttargetmark", true))
+            {
+                foreach (var hero in ObjectManager.Get<Obj_AI_Hero>())
+                {
+                    if (hero.BaseSkinName == "Zed" && hero.IsTargetable && !W.IsReady() && Player.Distance(hero) <= hero.AttackRange+hero.BoundingRadius+Player.BoundingRadius + 50 && Game.Time - ZedTime > 3)
+                    {
+                        R.CastOnUnit(hero,UsePackets());
+                    }
+                }
             }
         }
 
