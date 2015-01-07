@@ -201,7 +201,7 @@ namespace Over9000_Rockets
         {
             var vTarget = TargetSelector.GetTarget(W.Range + Player.AttackRange, TargetSelector.DamageType.Physical);
 
-            if (CalcDamage(vTarget) > vTarget.Health && W.IsReady() && vTarget.CountEnemysInRange(700) < 3)
+            if (CalcDamage(vTarget) > vTarget.Health && W.IsReady() && vTarget.CountEnemysInRange(700) < 3 && !vTarget.Position.UnderTurret(true))
             {
                 W.Cast(vTarget.Position);
             }
