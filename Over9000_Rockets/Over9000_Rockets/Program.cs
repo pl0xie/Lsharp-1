@@ -105,7 +105,7 @@ namespace Over9000_Rockets
 
         private static void CastE(Obj_AI_Base unit)
         {
-            eTime = Game.Time;
+            eTime = 5 + Game.Time + Player.Distance(unit) / E.Instance.SData.MissileSpeed;
             E.CastOnUnit(unit, UsePackets());
         }
         public static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
@@ -215,7 +215,7 @@ namespace Over9000_Rockets
         {
             //var vTarget = SimpleTs.GetTarget(Q.Range, SimpleTs.DamageType.Physical);
             // normal damage 2 Auto Attacks
-            var AA = Player.CalcDamage(target, Damage.DamageType.Physical, Player.FlatPhysicalDamageMod + Player.BaseAttackDamage) * (1 + Player.Crit);
+            var AA = Player.GetAutoAttackDamage(target, true) * (1 + Player.Crit);
             var damage = AA;
 
             if (_igniteSlot != SpellSlot.Unknown &&
@@ -235,13 +235,9 @@ namespace Over9000_Rockets
                 {
                     if (target.HasBuff("explosiveshotdebuff", true))
                     {
-                        damage += (((eTime + 5 - Game.Time) * E.GetDamage(target))/5);
+                        damage += (((eTime - Game.Time) * E.GetDamage(target))/5);
                     }
                 }           
-            }
-            if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>()) // qdamage
-            {
-                damage += AA * 2;
             }
 
             if (R.IsReady() && Config.Item("UseR").GetValue<bool>()) // rdamage
@@ -272,7 +268,7 @@ namespace Over9000_Rockets
                 CastE(vTarget);
             }
 
-            if (Config.Item("UseR").GetValue<bool>() && R.IsReady() && vTarget.Distance(Player.Position) < R.Range && (R.GetDamage(vTarget) > vTarget.Health || !E.IsReady() && CalcDamage(vTarget) > vTarget.Health))
+            if (Config.Item("UseR").GetValue<bool>() && R.IsReady() && vTarget.Distance(Player.Position) < R.Range && (R.GetDamage(vTarget) > vTarget.Health || !E.IsReady() && (CalcDamage(vTarget) - Player.GetAutoAttackDamage(vTarget, true) * (1 + Player.Crit)) > vTarget.Health + vTarget.HPRegenRate/2 * (eTime - Game.Time)))
             {
                 R.CastOnUnit(vTarget, UsePackets());
             }
