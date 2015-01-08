@@ -69,23 +69,7 @@ namespace LaneUtility
                     if (!PolyBot.IsOutside(Player.Position.To2D()))
                     {
                         CheckPolygon(PolyBot);
-                        foreach (var point in PolyBot.Points)
-                        {
-                            if (point.Distance(Game.CursorPos.To2D()) < 200)
-                            {
-                                Game.PrintChat(point.ToString());
-                            }
-                        }
-                    }
-                    else
-                    {
-                        foreach (var point in PolyTop.Points)
-                        {
-                            if (point.Distance(Game.CursorPos.To2D()) < 200)
-                            {
-                                Game.PrintChat(point.ToString());
-                            }
-                        }
+
                     }
                 }
             }
