@@ -47,7 +47,6 @@ namespace Over9000_Rockets
         private static void OnGameLoad(EventArgs args)
         {
             Player = ObjectManager.Player;
-
             Q = new Spell(SpellSlot.Q);
             W = new Spell(SpellSlot.W, 900);
             E = new Spell(SpellSlot.E, 630); //need to update range
@@ -255,7 +254,7 @@ namespace Over9000_Rockets
 
             if (CalcDamage(vTarget) > vTarget.Health && W.IsReady() && vTarget.CountEnemysInRange(700) < 3 && !vTarget.Position.UnderTurret(true))
             {
-                W.Cast(vTarget.Position, UsePackets());
+                W.Cast(vTarget.ServerPosition, UsePackets());
             }
             
             if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(Player.Position) < Player.AttackRange) //Q Logic
