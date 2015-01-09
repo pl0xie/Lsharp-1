@@ -30,14 +30,18 @@ namespace Over9000_Rockets
 
         private static void OnEndScene(EventArgs args)
         {
-            foreach (
-    var enemy in
-        ObjectManager.Get<Obj_AI_Hero>()
-            .Where(ene => !ene.IsDead && ene.IsEnemy && ene.IsVisible))
+            if (Config.SubMenu("Settings").Item("DrawD").GetValue<bool>())
             {
-                Hpi.unit = enemy;
-                Hpi.drawDmg(CalcDamage(enemy), Color.DarkGreen);
+
+
+                foreach (var enemy in
+                    ObjectManager.Get<Obj_AI_Hero>().Where(ene => !ene.IsDead && ene.IsEnemy && ene.IsVisible))
+                {
+                    Hpi.unit = enemy;
+                    Hpi.drawDmg(CalcDamage(enemy), Color.DarkGreen);
+                }
             }
+
         }
 
         private static void OnGameLoad(EventArgs args)
@@ -68,6 +72,8 @@ namespace Over9000_Rockets
             Config.AddSubMenu(new Menu("Harras", "Harras"));
             Config.SubMenu("Harras").AddItem(new MenuItem("UseEH", "Use E?")).SetValue(true);
             Config.SubMenu("Combo").AddItem(new MenuItem("UsePackets", "Use Packets?").SetValue(false));
+            Config.AddSubMenu(new Menu("Settings", "Settings"));
+            Config.SubMenu("Settings").AddItem(new MenuItem("DrawD", "Draw damage?").SetValue(true));
             Config.AddToMainMenu();
 
             _igniteSlot = _player.GetSpellSlot("SummonerDot");
@@ -197,13 +203,16 @@ namespace Over9000_Rockets
         private static void EscapeCombo()
         {
             var enemycount = 0;
+            var melee = 0;
             var zed = 0;
-            var pos = _player.Position.To2D().Extend(_player.Direction.To2D(), W.Range).To3D();
-            pos.Normalize();
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
             {
-                if (enemy.IsEnemy && _player.Distance(enemy) < enemy.AttackRange + enemy.BoundingRadius + _player.BoundingRadius + 50)
+                if (enemy.IsEnemy && _player.Distance(enemy) < enemy.AttackRange + enemy.BoundingRadius)
                 {
+                    if (enemy.IsMelee())
+                    {
+                        melee++;
+                    }
                     enemycount++;
                 }
 
@@ -213,10 +222,12 @@ namespace Over9000_Rockets
                     //regular escape should be in Ongameupdate  
                 }
             }
-            if (enemycount >= 3 || zed == 1)
+
+            if (enemycount >= 3 || zed == 1 || melee > 1)
             {
                 if (ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsEnemy && hero.Distance(_player.Position) <= W.Range && CalcDamage(hero) > hero.Health).ToList().Count == 0)
                 {
+
                     Escape();
                 }
 
@@ -228,14 +239,15 @@ namespace Over9000_Rockets
 
             for (var i = 1; i < 13; i++)
             {
-                var newpos = _player.Position.To2D().RotateAroundPoint(_player.Position.To2D(), angle * i);
-                newpos.Normalize();
+                var newpos = _player.Position.To2D().Extend(_player.Direction.To2D(), W.Range).RotateAroundPoint(_player.Position.To2D(), angle * i);
+
                 if (!_player.Position.UnderTurret(true) && _player.Position.UnderTurret(false))
                 {
                     W.Cast(newpos);
                 }
                 else
                 {
+                    Drawing.DrawCircle(newpos.To3D(), 100, Color.Red);
                     if (!newpos.IsWall() && newpos.To3D().CountEnemysInRange(700) <= 1 && !newpos.To3D().UnderTurret(true))
                     {
                         W.Cast(newpos);
