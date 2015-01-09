@@ -257,6 +257,7 @@ namespace Over9000_Rockets
                     W.Cast(newpos);
                 }
             }
+
             for (var i = 1; i < 13; i++)
             {
                 var newpos = _player.Position.To2D().Extend(_player.Direction.To2D(), W.Range).RotateAroundPoint(_player.Position.To2D(), angle * i);
@@ -264,7 +265,6 @@ namespace Over9000_Rockets
                     {
                         W.Cast(newpos);
                     }
-                
             }
 
 
