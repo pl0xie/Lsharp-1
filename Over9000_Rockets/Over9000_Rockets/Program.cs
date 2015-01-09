@@ -69,6 +69,9 @@ namespace Over9000_Rockets
             Config.SubMenu("Combo")
                 .AddItem(new MenuItem("PressR", "Cast R").SetValue(new KeyBind('R', KeyBindType.Press)));
 
+            Config.SubMenu("Combo")
+               .AddItem(new MenuItem("Escape", "Escape").SetValue(new KeyBind('Z', KeyBindType.Press)));
+
             Config.AddSubMenu(new Menu("Harras", "Harras"));
             Config.SubMenu("Harras").AddItem(new MenuItem("UseEH", "Use E?")).SetValue(true);
             Config.SubMenu("Combo").AddItem(new MenuItem("UsePackets", "Use Packets?").SetValue(false));
@@ -135,6 +138,10 @@ namespace Over9000_Rockets
             if (Config.SubMenu("Combo").Item("PressR").GetValue<KeyBind>().Active)
             {
                 R.CastOnUnit(vTarget, UsePackets());
+            }
+            if (Config.SubMenu("Combo").Item("Escape").GetValue<KeyBind>().Active)
+            {
+                Escape();
             }
             if (Orbwalker.ActiveMode.ToString().ToLower() == "mixed")
             {
