@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data.Odbc;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -21,9 +20,9 @@ namespace Over9000_Rockets
 
         //Anti champs logic
         private static float _zedTime = 10;
-        private static bool Fizz = false;
-        private static bool Zed = false;
-        private static bool Vayne = false;
+        private static bool _fizz;
+        private static bool _zed;
+        private static bool _vayne;
 
         //end
         public static HpBarIndicator Hpi = new HpBarIndicator();
@@ -71,6 +70,8 @@ namespace Over9000_Rockets
             Config.SubMenu("Combo").AddItem(new MenuItem("UseR", "Use R?").SetValue(true));
             Config.SubMenu("Combo")
                 .AddItem(new MenuItem("PressR", "Cast R").SetValue(new KeyBind('R', KeyBindType.Press)));
+            Config.SubMenu("Combo")
+    .AddItem(new MenuItem("Interupt", "Interupt spells").SetValue(true));
 
             Config.SubMenu("Combo")
                .AddItem(new MenuItem("Escape", "Escape").SetValue(new KeyBind('Z', KeyBindType.Press)));
@@ -88,30 +89,37 @@ namespace Over9000_Rockets
             {
                 if (hero.BaseSkinName == "Fizz" && hero.IsEnemy)
                 {
-                    Fizz = true;
+                    _fizz = true;
                 }
 
                 if (hero.BaseSkinName == "Zed" && hero.IsEnemy)
                 {
-                    Zed = true;
+                    _zed = true;
                 }
 
                 if (hero.BaseSkinName == "Vayne" && hero.IsEnemy)
                 {
-                    Vayne = true;
+                    _vayne = true;
                 }
             }
-
-
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
+            Interrupter.OnPossibleToInterrupt += Interrupter_OnPossibleToInterrupt;
             Game.OnGameUpdate += GameUpdate;
 
-            if (Zed || Vayne)
+            if (_zed || _vayne)
             {
                 Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
             }
             
             Orbwalking.AfterAttack += OrbwalkingAfterAttack;
+        }
+
+        static void Interrupter_OnPossibleToInterrupt(Obj_AI_Base unit, InterruptableSpell spell)
+        {
+            if (R.IsReady() && unit.IsValidTarget(R.Range) && Config.SubMenu("Combo").Item("Interupt").GetValue<bool>())
+            {
+                R.CastOnUnit(unit);
+            }             
         }
         static void OrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
         {
@@ -158,15 +166,18 @@ namespace Over9000_Rockets
 
             if (sender.BaseSkinName == "Vayne" && sender.IsEnemy && args.SData.Name == sender.Spellbook.GetSpell(SpellSlot.E).SData.Name)
             {
-                if(sender.Position.Extend(_player.Position, sender.Distance(_player) + 450).IsWall())
+                if(_player.Position.Extend(sender.Position, (sender.Distance(_player) + 450) * -1).IsWall())
                 {
                     if (W.IsReady())
                     {
-                        Escape();
+                        EscapeVayne(sender);
                     }
                     else
                     {
-                        R.CastOnUnit(sender);
+                        if(sender.Distance(_player) <= R.Range)
+                        {
+                            R.CastOnUnit(sender);
+                        }                   
                     }
                 }
             }
@@ -207,7 +218,6 @@ namespace Over9000_Rockets
             if (W.IsReady())
             {
                 _time = Game.Time;
-
                 if (CalcDamage(gapcloser.Sender) > gapcloser.Sender.Health && gapcloser.End.CountEnemysInRange(700) < 2) //NO YOU DONT.. run away ^^
                 {
                     W.Cast(gapcloser.End);
@@ -311,8 +321,35 @@ namespace Over9000_Rockets
                         W.Cast(newpos);
                     }
             }
+        }
 
+        private static void EscapeVayne(Obj_AI_Base vayne) //gapcloser
+        {
+            var angle = Geometry.DegreeToRadian(30);
 
+            for (var i = 1; i < 13; i++)
+            {
+                var newpos = _player.Position.To2D().Extend(_player.Direction.To2D(), W.Range).RotateAroundPoint(_player.Position.To2D(), angle * i);
+                if (!_player.Position.UnderTurret(true) && _player.Position.UnderTurret(false))
+                {
+                    if (vayne.Position.To2D().Extend(newpos,(newpos.Distance(vayne) + 450)).IsWall())
+                    {
+                        W.Cast(newpos, UsePackets());
+                    }
+                }
+            }
+
+            for (var i = 1; i < 13; i++)
+            {
+                var newpos = _player.Position.To2D().Extend(_player.Direction.To2D(), W.Range).RotateAroundPoint(_player.Position.To2D(), angle * i);
+                if (!newpos.IsWall() && newpos.To3D().CountEnemysInRange(700) <= 1 && !newpos.To3D().UnderTurret(true))
+                {
+                    if (vayne.Position.To2D().Extend(newpos, (newpos.Distance(vayne) + 450)).IsWall())
+                    {
+                        W.Cast(newpos, UsePackets());
+                    }
+                }
+            }
         }
         private static int CalcDamage(Obj_AI_Base target)
         {
@@ -359,7 +396,7 @@ namespace Over9000_Rockets
 
         private static void Combo(Obj_AI_Hero vTarget)
         {
-            if (Fizz)
+            if (_fizz)
             {
                 if (ObjectManager.Get<Obj_AI_Hero>().Any(hero => vTarget != hero && hero.BaseSkinName == "Fizz" && !hero.IsTargetable && hero.Distance(_player) < _player.AttackRange && vTarget.Health > CalcDamage(vTarget))) {
                     return;
