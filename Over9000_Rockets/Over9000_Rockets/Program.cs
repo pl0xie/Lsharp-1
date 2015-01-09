@@ -242,6 +242,10 @@ namespace Over9000_Rockets
         }
         private static void Escape() //gapcloser
         {
+            if (!W.IsReady())
+            {
+                return;
+            }
             var angle = Geometry.DegreeToRadian(30);
 
             for (var i = 1; i < 13; i++)
@@ -252,15 +256,18 @@ namespace Over9000_Rockets
                 {
                     W.Cast(newpos);
                 }
-                else
-                {
-                    Drawing.DrawCircle(newpos.To3D(), 100, Color.Red);
+            }
+            for (var i = 1; i < 13; i++)
+            {
+                var newpos = _player.Position.To2D().Extend(_player.Direction.To2D(), W.Range).RotateAroundPoint(_player.Position.To2D(), angle * i);
                     if (!newpos.IsWall() && newpos.To3D().CountEnemysInRange(700) <= 1 && !newpos.To3D().UnderTurret(true))
                     {
                         W.Cast(newpos);
                     }
-                }
+                
             }
+
+
         }
         private static int CalcDamage(Obj_AI_Base target)
         {
