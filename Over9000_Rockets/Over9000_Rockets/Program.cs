@@ -15,8 +15,15 @@ namespace Over9000_Rockets
         private static Obj_AI_Hero _player;
         private static SpellSlot _igniteSlot;
         private static float _time = 10;
-        private static float _zedTime = 10;
+
         private static float _eTime;
+
+        //Anti champs logic
+        private static float _zedTime = 10;
+        private static bool Fizz = false;
+
+
+        //end
         public static HpBarIndicator Hpi = new HpBarIndicator();
 
 
@@ -32,8 +39,6 @@ namespace Over9000_Rockets
         {
             if (Config.SubMenu("Settings").Item("DrawD").GetValue<bool>())
             {
-
-
                 foreach (var enemy in
                     ObjectManager.Get<Obj_AI_Hero>().Where(ene => !ene.IsDead && ene.IsEnemy && ene.IsVisible))
                 {
@@ -81,6 +86,14 @@ namespace Over9000_Rockets
 
             _igniteSlot = _player.GetSpellSlot("SummonerDot");
 
+            foreach (var hero in ObjectManager.Get<Obj_AI_Hero>())
+            {
+                if (hero.BaseSkinName == "Fizz")
+                {
+                    Fizz = true;
+                }
+            }
+
 
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Game.OnGameUpdate += GameUpdate;
@@ -91,10 +104,6 @@ namespace Over9000_Rockets
         {
            
             var vTarget = target as Obj_AI_Hero;
-            
-
-
-
             if (vTarget == null || !unit.IsMe || Orbwalker.ActiveMode.ToString().ToLower() != "combo")
             {
                 return;
@@ -324,10 +333,17 @@ namespace Over9000_Rockets
 
         private static void Combo(Obj_AI_Hero vTarget)
         {
+            if (Fizz)
+            {
+                if (ObjectManager.Get<Obj_AI_Hero>().Any(hero => vTarget != hero && hero.BaseSkinName == "Fizz" && !hero.IsTargetable && hero.Distance(_player) < _player.AttackRange && vTarget.Health > CalcDamage(vTarget))) {
+                    return;
+                }
+            }
+
+
             if (CalcDamage(vTarget) > vTarget.Health && W.IsReady() && vTarget.CountEnemysInRange(700) < 3 && !vTarget.Position.UnderTurret(true))
             {
                 W.Cast(vTarget.ServerPosition, UsePackets());
-
             }
 
             if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(_player.Position) <= _player.AttackRange) //Q Logic

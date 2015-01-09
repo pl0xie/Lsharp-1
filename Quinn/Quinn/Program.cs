@@ -168,11 +168,6 @@ class Program
         return (int)damage;
     }
 
-    private static bool isTeamfight()
-    {
-
-    }
-
 
     private static void CastE(Obj_AI_Base vTarget)
     {
