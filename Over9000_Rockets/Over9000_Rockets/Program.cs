@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Odbc;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -21,14 +22,11 @@ namespace Over9000_Rockets
         //Anti champs logic
         private static float _zedTime = 10;
         private static bool Fizz = false;
-
+        private static bool Zed = false;
+        private static bool Vayne = false;
 
         //end
         public static HpBarIndicator Hpi = new HpBarIndicator();
-
-
-
-
         static void Main(string[] args)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
@@ -88,16 +86,31 @@ namespace Over9000_Rockets
 
             foreach (var hero in ObjectManager.Get<Obj_AI_Hero>())
             {
-                if (hero.BaseSkinName == "Fizz")
+                if (hero.BaseSkinName == "Fizz" && hero.IsEnemy)
                 {
                     Fizz = true;
+                }
+
+                if (hero.BaseSkinName == "Zed" && hero.IsEnemy)
+                {
+                    Zed = true;
+                }
+
+                if (hero.BaseSkinName == "Vayne" && hero.IsEnemy)
+                {
+                    Vayne = true;
                 }
             }
 
 
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Game.OnGameUpdate += GameUpdate;
-            Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
+
+            if (Zed || Vayne)
+            {
+                Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
+            }
+            
             Orbwalking.AfterAttack += OrbwalkingAfterAttack;
         }
         static void OrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
@@ -141,6 +154,21 @@ namespace Over9000_Rockets
             if (sender.BaseSkinName == "Zed" && sender.IsEnemy && args.SData.Name.ToLower() == "zedult")
             {
                 _zedTime = Game.Time;
+            }
+
+            if (sender.BaseSkinName == "Vayne" && sender.IsEnemy && args.SData.Name == sender.Spellbook.GetSpell(SpellSlot.E).SData.Name)
+            {
+                if(sender.Position.Extend(_player.Position, sender.Distance(_player) + 450).IsWall())
+                {
+                    if (W.IsReady())
+                    {
+                        Escape();
+                    }
+                    else
+                    {
+                        R.CastOnUnit(sender);
+                    }
+                }
             }
 
         }
@@ -230,7 +258,7 @@ namespace Over9000_Rockets
         {
             var enemycount = 0;
             var melee = 0;
-            var zed = 0;
+            var zedult = 0;
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
             {
                 if (enemy.IsEnemy && _player.Distance(enemy) < enemy.AttackRange + enemy.BoundingRadius)
@@ -244,19 +272,17 @@ namespace Over9000_Rockets
 
                 if (_player.HasBuff("zedulttargetmark", true) && enemy.BaseSkinName == "Zed" && enemy.IsTargetable)
                 {
-                    zed = 1; // move this to regular escape
+                    zedult = 1; // move this to regular escape
                     //regular escape should be in Ongameupdate  
                 }
             }
 
-            if (enemycount >= 3 || zed == 1 || melee > 1)
+            if (enemycount >= 3 || zedult == 1 || melee > 1)
             {
                 if (ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsEnemy && hero.Distance(_player.Position) <= W.Range && CalcDamage(hero) > hero.Health).ToList().Count == 0)
                 {
-
                     Escape();
                 }
-
             }
         }
         private static void Escape() //gapcloser
