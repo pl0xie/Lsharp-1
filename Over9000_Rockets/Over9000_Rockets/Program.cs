@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SharpDX;
 using Color = System.Drawing.Color;
-using SimpleLib;
 
 namespace Over9000_Rockets
 {
@@ -16,22 +12,22 @@ namespace Over9000_Rockets
         public static Orbwalking.Orbwalker Orbwalker;
         public static Spell Q, W, E, R;
         public static Menu Config;
-        private static Obj_AI_Hero Player;
+        private static Obj_AI_Hero _player;
         private static SpellSlot _igniteSlot;
-        private static float Time = 10;
-        private static float ZedTime = 10;
-        private static float eTime = 0;
-        public static HpBarIndicator hpi = new HpBarIndicator();
-        
+        private static float _time = 10;
+        private static float _zedTime = 10;
+        private static float _eTime;
+        public static HpBarIndicator Hpi = new HpBarIndicator();
+
 
 
 
         static void Main(string[] args)
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
-              Drawing.OnEndScene += OnEndScene;
+            Drawing.OnEndScene += OnEndScene;
         }
-        
+
         private static void OnEndScene(EventArgs args)
         {
             foreach (
@@ -39,18 +35,18 @@ namespace Over9000_Rockets
         ObjectManager.Get<Obj_AI_Hero>()
             .Where(ene => !ene.IsDead && ene.IsEnemy && ene.IsVisible))
             {
-                hpi.unit = enemy;
-                hpi.drawDmg(CalcDamage(enemy), Color.DarkGreen);
+                Hpi.unit = enemy;
+                Hpi.drawDmg(CalcDamage(enemy), Color.DarkGreen);
             }
         }
-        
+
         private static void OnGameLoad(EventArgs args)
         {
-            Player = ObjectManager.Player;
+            _player = ObjectManager.Player;
             Q = new Spell(SpellSlot.Q);
             W = new Spell(SpellSlot.W, 900);
-            E = new Spell(SpellSlot.E, 630); //need to update range
-            R = new Spell(SpellSlot.R, 630); // need to update range
+            E = new Spell(SpellSlot.E, 630);
+            R = new Spell(SpellSlot.R, 630);
 
             W.SetSkillshot(0.25f, 80f, 1150, true, SkillshotType.SkillshotLine); // need to update values
             E.SetTargetted(0.25f, 2000f);
@@ -66,15 +62,49 @@ namespace Over9000_Rockets
             Config.SubMenu("Combo").AddItem(new MenuItem("UseW", "Use W?").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("UseE", "Use E?").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("UseR", "Use R?").SetValue(true));
+            Config.SubMenu("Combo")
+                .AddItem(new MenuItem("PressR", "Cast R").SetValue(new KeyBind('R', KeyBindType.Press)));
+
             Config.AddSubMenu(new Menu("Harras", "Harras"));
             Config.SubMenu("Harras").AddItem(new MenuItem("UseEH", "Use E?")).SetValue(true);
             Config.SubMenu("Combo").AddItem(new MenuItem("UsePackets", "Use Packets?").SetValue(false));
             Config.AddToMainMenu();
 
-            _igniteSlot = Player.GetSpellSlot("SummonerDot");
+            _igniteSlot = _player.GetSpellSlot("SummonerDot");
+
+
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
-            Game.OnGameUpdate += game_Update;
+            Game.OnGameUpdate += GameUpdate;
             Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
+            Orbwalking.AfterAttack += OrbwalkingAfterAttack;
+        }
+        static void OrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
+        {
+           
+            var vTarget = target as Obj_AI_Hero;
+            
+            if (vTarget == null || !unit.IsMe || Orbwalker.ActiveMode.ToString().ToLower() != "combo")
+            {
+                return;
+            }
+            
+            var damage = _player.GetAutoAttackDamage(vTarget, true) + R.GetDamage(vTarget);
+
+
+            if (vTarget.HasBuff("explosiveshotdebuff", true))
+            {
+                damage += ((((_eTime - Game.Time) * E.GetDamage(vTarget)) / 5) - ((vTarget.HPRegenRate/2) * (_eTime - Game.Time)) );
+            }
+
+            if ((damage > vTarget.Health) && ((damage - _player.GetAutoAttackDamage(vTarget,true)) < vTarget.Health) &&
+                R.IsReady())
+            {
+                R.CastOnUnit(vTarget, UsePackets());
+            }
+
+            //double jump combo?
+            //maybe check auto attack resets?
+            
         }
         // wtf is wrong with gapcloser fps abuse!?
 
@@ -82,18 +112,23 @@ namespace Over9000_Rockets
         {
             if (sender.BaseSkinName == "Zed" && sender.IsEnemy && args.SData.Name.ToLower() == "zedult")
             {
-                ZedTime = Game.Time;
+                _zedTime = Game.Time;
             }
 
         }
 
-        private static void game_Update(EventArgs args)
+        private static void GameUpdate(EventArgs args)
         {
-            E.Range = 630 + (Player.Level - 1) * 9;
+            var vTarget = TargetSelector.GetTarget(W.Range + _player.AttackRange, TargetSelector.DamageType.Physical);
+            E.Range = 630 + (_player.Level - 1) * 9;
             R.Range = E.Range;
             if (Orbwalker.ActiveMode.ToString().ToLower() == "combo")
             {
-                Combo();
+                Combo(vTarget);
+            }
+            if (Config.SubMenu("Combo").Item("PressR").GetValue<KeyBind>().Active)
+            {
+                R.CastOnUnit(vTarget, UsePackets());
             }
             if (Orbwalker.ActiveMode.ToString().ToLower() == "mixed")
             {
@@ -104,47 +139,45 @@ namespace Over9000_Rockets
 
         private static void CastE(Obj_AI_Base unit)
         {
-            eTime = 5 + Game.Time + Player.Distance(unit) / E.Instance.SData.MissileSpeed;
+            _eTime = 5 + Game.Time + _player.Distance(unit) / E.Instance.SData.MissileSpeed;
             E.CastOnUnit(unit, UsePackets());
         }
         public static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
             if (W.IsReady())
             {
-                Time = Game.Time;
+                _time = Game.Time;
+
+                if (CalcDamage(gapcloser.Sender) > gapcloser.Sender.Health && gapcloser.End.CountEnemysInRange(700) < 2) //NO YOU DONT.. run away ^^
+                {
+                    W.Cast(gapcloser.End);
+                    return;
+                }
                 foreach (var hero in ObjectManager.Get<Obj_AI_Hero>())
                 {
-                    if (CalcDamage(gapcloser.Sender) > gapcloser.Sender.Health * 1.5) //NO YOU DONT.. run away ^^
-                    {
-                        W.Cast(gapcloser.End);
-                    }
-                    else
-                    {
-                        if (W.GetDamage(hero) > hero.Health + 50 && hero.Distance(Player) < W.Range) // if anyone else is killable
+                        if (W.GetDamage(hero) > hero.Health + 50 && hero.Distance(_player) < W.Range) // if anyone else is killable
                         {
                             W.Cast(hero.Position);
+                            return;
                         }
-                        else
-                        {
-                            Vector2 dada = new Vector2(gapcloser.End.Extend(
-                                Player.Position, Player.Distance(gapcloser.End) + W.Range).X, gapcloser.End.Extend(
-                                Player.Position, Player.Distance(gapcloser.End) + W.Range).Y);
-                            dada.Normalize();         
-                            if (!dada.IsWall() && !dada.To3D().UnderTurret(true) && dada.To3D().CountEnemysInRange(700) <= 1) //try to find better escape
-                            {
-                                W.Cast(dada);
-                            }
-                            else
-                            {
-                                Escape(); //use full escape mechanism
-                            }
-                        }
-                    }
                 }
+                var dada = new Vector2(gapcloser.End.Extend(
+                    _player.Position, _player.Distance(gapcloser.End) + W.Range).X, gapcloser.End.Extend(
+                    _player.Position, _player.Distance(gapcloser.End) + W.Range).Y);
+                dada.Normalize();
+                if (!dada.IsWall() && !dada.To3D().UnderTurret(true) && dada.To3D().CountEnemysInRange(700) <= 1) //try to find better escape
+                {
+                    W.Cast(dada);
+                }
+                else
+                {
+                    Escape(); //use full escape mechanism
+                }
+
             }
             else //if not killable or more then 2 enemies around..
             {
-                if (R.IsReady() && (Game.Time - Time > 1) && (CalcDamage(gapcloser.Sender) < gapcloser.Sender.Health) || Player.CountEnemysInRange(1000) > 2)
+                if (R.IsReady() && (Game.Time - _time > 1) && (CalcDamage(gapcloser.Sender) < gapcloser.Sender.Health) || _player.CountEnemysInRange(1000) > 2)
                 {
                     R.CastOnUnit(gapcloser.Sender, UsePackets());
                 }
@@ -165,16 +198,16 @@ namespace Over9000_Rockets
         {
             var enemycount = 0;
             var zed = 0;
-            var pos = Player.Position.To2D().Extend(Player.Direction.To2D(), W.Range).To3D();
+            var pos = _player.Position.To2D().Extend(_player.Direction.To2D(), W.Range).To3D();
             pos.Normalize();
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
             {
-                if (enemy.IsEnemy && Player.Distance(enemy) < enemy.AttackRange + enemy.BoundingRadius + Player.BoundingRadius + 50)
+                if (enemy.IsEnemy && _player.Distance(enemy) < enemy.AttackRange + enemy.BoundingRadius + _player.BoundingRadius + 50)
                 {
                     enemycount++;
                 }
 
-                if (Player.HasBuff("zedulttargetmark", true) && enemy.BaseSkinName == "Zed" && enemy.IsTargetable)
+                if (_player.HasBuff("zedulttargetmark", true) && enemy.BaseSkinName == "Zed" && enemy.IsTargetable)
                 {
                     zed = 1; // move this to regular escape
                     //regular escape should be in Ongameupdate  
@@ -182,7 +215,7 @@ namespace Over9000_Rockets
             }
             if (enemycount >= 3 || zed == 1)
             {
-                if (ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsEnemy && hero.Distance(Player.Position) <= W.Range && CalcDamage(hero) > hero.Health).ToList().Count == 0)
+                if (ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsEnemy && hero.Distance(_player.Position) <= W.Range && CalcDamage(hero) > hero.Health).ToList().Count == 0)
                 {
                     Escape();
                 }
@@ -193,36 +226,36 @@ namespace Over9000_Rockets
         {
             var angle = Geometry.DegreeToRadian(30);
 
-                    for (var i = 1; i < 13; i++)
+            for (var i = 1; i < 13; i++)
+            {
+                var newpos = _player.Position.To2D().RotateAroundPoint(_player.Position.To2D(), angle * i);
+                newpos.Normalize();
+                if (!_player.Position.UnderTurret(true) && _player.Position.UnderTurret(false))
+                {
+                    W.Cast(newpos);
+                }
+                else
+                {
+                    if (!newpos.IsWall() && newpos.To3D().CountEnemysInRange(700) <= 1 && !newpos.To3D().UnderTurret(true))
                     {
-                        var newpos = Geometry.RotateAroundPoint(Player.Position.To2D(), Player.Position.To2D(), angle * i);
-                        newpos.Normalize();
-                        if (!Player.Position.UnderTurret(true) && Player.Position.UnderTurret(false))
-                        {
-                            W.Cast(newpos);
-                        }
-                        else
-                        {
-                            if (!newpos.IsWall() && newpos.To3D().CountEnemysInRange(700) <= 1 && !newpos.To3D().UnderTurret(true))
-                            {
-                                W.Cast(newpos);
-                            }
-                        }
+                        W.Cast(newpos);
                     }
+                }
+            }
         }
         private static int CalcDamage(Obj_AI_Base target)
         {
             //var vTarget = SimpleTs.GetTarget(Q.Range, SimpleTs.DamageType.Physical);
             // normal damage 2 Auto Attacks
-            var AA = Player.GetAutoAttackDamage(target, true) * (1 + Player.Crit);
-            var damage = AA;
+            var aa = _player.GetAutoAttackDamage(target, true) * (1 + _player.Crit);
+            var damage = aa;
 
             if (_igniteSlot != SpellSlot.Unknown &&
-        Player.Spellbook.CanUseSpell(_igniteSlot) == SpellState.Ready)
+        _player.Spellbook.CanUseSpell(_igniteSlot) == SpellState.Ready)
                 damage += ObjectManager.Player.GetSummonerSpellDamage(target, Damage.SummonerSpell.Ignite);
 
             if (Items.HasItem(3153) && Items.CanUseItem(3153))
-                damage += Player.GetItemDamage(target, Damage.DamageItems.Botrk); //ITEM BOTRK
+                damage += _player.GetItemDamage(target, Damage.DamageItems.Botrk); //ITEM BOTRK
 
             if (Config.Item("UseE").GetValue<bool>()) // edamage
             {
@@ -234,9 +267,9 @@ namespace Over9000_Rockets
                 {
                     if (target.HasBuff("explosiveshotdebuff", true))
                     {
-                        damage += (((eTime - Game.Time) * E.GetDamage(target))/5);
+                        damage += (((_eTime - Game.Time) * E.GetDamage(target)) / 5);
                     }
-                }           
+                }
             }
 
             if (R.IsReady() && Config.Item("UseR").GetValue<bool>()) // rdamage
@@ -244,40 +277,49 @@ namespace Over9000_Rockets
 
                 damage += R.GetDamage(target);
             }
+
+            if (W.IsReady())
+            {
+                damage += W.GetDamage(target);
+            }
             return (int)damage;
         }
 
 
-        private static void Combo()
+        private static void Combo(Obj_AI_Hero vTarget)
         {
-            var vTarget = TargetSelector.GetTarget(W.Range + Player.AttackRange, TargetSelector.DamageType.Physical);
+
 
             if (CalcDamage(vTarget) > vTarget.Health && W.IsReady() && vTarget.CountEnemysInRange(700) < 3 && !vTarget.Position.UnderTurret(true))
             {
                 W.Cast(vTarget.ServerPosition, UsePackets());
             }
-            
-            if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(Player.Position) < Player.AttackRange) //Q Logic
+
+            if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(_player.Position) < _player.AttackRange) //Q Logic
             {
                 Q.Cast(UsePackets());
             }
 
-            if (Config.Item("UseE").GetValue<bool>() && E.IsReady() && vTarget.Distance(Player.Position) < E.Range)
+            if (Config.Item("UseE").GetValue<bool>() && E.IsReady() && vTarget.Distance(_player.Position) < E.Range)
             {
                 CastE(vTarget);
             }
 
-            if (Config.Item("UseR").GetValue<bool>() && R.IsReady() && vTarget.Distance(Player.Position) < R.Range && (R.GetDamage(vTarget) > vTarget.Health || !E.IsReady() && (CalcDamage(vTarget) - Player.GetAutoAttackDamage(vTarget, true) * (1 + Player.Crit)) > vTarget.Health + vTarget.HPRegenRate/2 * (eTime - Game.Time)))
+            if (Config.Item("UseR").GetValue<bool>() && R.IsReady() && vTarget.Distance(_player.Position) < R.Range)
             {
-                R.CastOnUnit(vTarget, UsePackets());
+                if (R.GetDamage(vTarget) > vTarget.Health)
+                {
+                    R.CastOnUnit(vTarget, UsePackets());
+                }
             }
 
-            if (!Player.HasBuff("zedulttargetmark", true))
+            if (!_player.HasBuff("zedulttargetmark", true))
             {
                 return;
             }
-            foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.BaseSkinName == "Zed" && hero.IsTargetable && !W.IsReady() && Player.Distance(hero) <= hero.AttackRange+hero.BoundingRadius+Player.BoundingRadius + 50 && Game.Time - ZedTime > 3)) {
-                R.CastOnUnit(hero,UsePackets());
+            foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.BaseSkinName == "Zed" && hero.IsTargetable && !W.IsReady() && _player.Distance(hero) <= hero.AttackRange + hero.BoundingRadius + _player.BoundingRadius + 50 && Game.Time - _zedTime > 3))
+            {
+                R.CastOnUnit(hero, UsePackets());
             }
         }
 
