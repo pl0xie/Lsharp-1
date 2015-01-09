@@ -92,11 +92,20 @@ namespace Over9000_Rockets
            
             var vTarget = target as Obj_AI_Hero;
             
+
+
+
             if (vTarget == null || !unit.IsMe || Orbwalker.ActiveMode.ToString().ToLower() != "combo")
             {
                 return;
             }
-            
+
+
+            if (Config.Item("UseE").GetValue<bool>() && E.IsReady() && vTarget.Distance(_player.Position) <= E.Range)
+            {
+                CastE(vTarget);
+            }
+
             var damage = _player.GetAutoAttackDamage(vTarget, true) + R.GetDamage(vTarget);
 
 
@@ -106,10 +115,11 @@ namespace Over9000_Rockets
             }
 
             if ((damage > vTarget.Health) && ((damage - _player.GetAutoAttackDamage(vTarget,true)) < vTarget.Health) &&
-                R.IsReady())
+                R.IsReady() && vTarget.Distance(_player.Position) <= R.Range)
             {
                 R.CastOnUnit(vTarget, UsePackets());
             }
+
 
             //double jump combo?
             //maybe check auto attack resets?
@@ -314,24 +324,18 @@ namespace Over9000_Rockets
 
         private static void Combo(Obj_AI_Hero vTarget)
         {
-
-
             if (CalcDamage(vTarget) > vTarget.Health && W.IsReady() && vTarget.CountEnemysInRange(700) < 3 && !vTarget.Position.UnderTurret(true))
             {
                 W.Cast(vTarget.ServerPosition, UsePackets());
+
             }
 
-            if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(_player.Position) < _player.AttackRange) //Q Logic
+            if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(_player.Position) <= _player.AttackRange) //Q Logic
             {
                 Q.Cast(UsePackets());
             }
 
-            if (Config.Item("UseE").GetValue<bool>() && E.IsReady() && vTarget.Distance(_player.Position) < E.Range)
-            {
-                CastE(vTarget);
-            }
-
-            if (Config.Item("UseR").GetValue<bool>() && R.IsReady() && vTarget.Distance(_player.Position) < R.Range)
+            if (Config.Item("UseR").GetValue<bool>() && R.IsReady() && vTarget.Distance(_player.Position) <= R.Range)
             {
                 if (R.GetDamage(vTarget) > vTarget.Health)
                 {

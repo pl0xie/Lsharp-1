@@ -112,7 +112,7 @@ class Program
         }
         
     }
-    private static int CalcDamage(Obj_AI_Hero target)
+    private static int CalcDamage(Obj_AI_Base target)
     {
         //var vTarget = SimpleTs.GetTarget(Q.Range, SimpleTs.DamageType.Physical);
         // normal damage 2 Auto Attacks
@@ -168,7 +168,60 @@ class Program
         return (int)damage;
     }
 
-    
+    private static bool isTeamfight()
+    {
+
+    }
+
+
+    private static void CastE(Obj_AI_Base vTarget)
+    {
+        var ally = 0;
+        var enemy = 0;
+        if (vTarget.IsMinion)
+        {
+            E.CastOnUnit(vTarget,UsePackets());
+            return;
+        }
+
+        foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.Distance(Player.Position) <= 1000))
+        {
+            if (hero.IsAlly && !hero.IsMe)
+            {
+                ally++;
+            }
+            if (hero.IsEnemy && Player.Distance(hero) < 1000)
+            {
+                enemy++;
+            }
+
+            if (hero.Distance(Player) <= hero.AttackRange + hero.BoundingRadius + Player.BoundingRadius && hero.IsMelee())
+            {
+                E.CastOnUnit(hero,UsePackets());
+                return;
+            }
+        }
+        if ((ally == 0 || enemy <= 1) && vTarget.Health > CalcDamage(vTarget)+Player.GetAutoAttackDamage(vTarget)*2)
+        {
+            return;
+        }
+
+        if (!vTarget.Position.UnderTurret(true))
+        {
+            E.CastOnUnit(vTarget, UsePackets());
+        }
+        else
+        {
+            if (vTarget.Health < CalcDamage(vTarget) && Player.Health > vTarget.Health * 1.2)
+            {
+                E.CastOnUnit(vTarget, UsePackets());
+            }
+        }
+
+
+
+    }
+
     private static void Combo()
     {
         var vTarget = TargetSelector.GetTarget(E.Range + 550, TargetSelector.DamageType.Physical);
@@ -219,12 +272,12 @@ class Program
                     if ((ultdamage + passive) > vTarget.Health || (ultdamage + passive) > CalcDamage(vTarget))
                     {
                         R.Cast(UsePackets());
-                        E.CastOnUnit(vTarget, UsePackets());
+                        CastE(vTarget);
                     }
                 }
                 else
                 {
-                    E.CastOnUnit(vTarget, UsePackets());
+                    CastE(vTarget);
                 }
             }
             else // human form
@@ -233,8 +286,8 @@ class Program
                 if (vTarget.Distance(Player) > E.Range && CalcDamage(vTarget) - E.GetDamage(vTarget) > vTarget.Health)
                 {
                     foreach (var minion in Minion.Where(minion => minion.ServerPosition.Extend(Player.ServerPosition, 550).Distance(vTarget.ServerPosition) < Player.Distance(vTarget) - Player.MoveSpeed/2)) {
-                        
-                        E.CastOnUnit(minion, UsePackets());
+
+                        CastE(minion);
                         Game.PrintChat("using E on minion");
                     }
                 }
@@ -244,12 +297,12 @@ class Program
                 {
                     if (!vTarget.HasBuff("QuinnW"))
                     {
-                        E.CastOnUnit(vTarget, UsePackets());
+                        CastE(vTarget);
                     }
                 }
                 else
                 {
-                    E.CastOnUnit(vTarget, UsePackets());
+                    CastE(vTarget);
                 }
             }
         }
