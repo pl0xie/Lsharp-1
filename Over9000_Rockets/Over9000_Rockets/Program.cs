@@ -10,7 +10,7 @@ namespace Over9000_Rockets
     class Program
     {
         public static Orbwalking.Orbwalker Orbwalker;
-        public static Spell Q, W, E, R;
+        public static Spell Q, W, E, R, vaynE;
         public static Menu Config;
         private static Obj_AI_Hero _player;
         private static SpellSlot _igniteSlot;
@@ -46,13 +46,13 @@ namespace Over9000_Rockets
                     Hpi.drawDmg(CalcDamage(enemy), Color.DarkGreen);
                 }
             }
-            if (realpos != null && realpos2!= null)
+            if (realpos != null && realpos2 != null)
             {
-               
+
                 Geometry.Draw.DrawRing(realpos.To3D(), 100, 100, Color.Red);
                 Geometry.Draw.DrawRing(realpos2.To3D(), 100, 100, Color.Red);
             }
- 
+
 
         }
 
@@ -81,7 +81,7 @@ namespace Over9000_Rockets
             Config.SubMenu("Combo")
                 .AddItem(new MenuItem("PressR", "Cast R").SetValue(new KeyBind('R', KeyBindType.Press)));
             //Config.SubMenu("Combo")
-              //  .AddItem(new MenuItem("Simulate", "Simulate Vayne").SetValue(new KeyBind('A', KeyBindType.Press)));
+            //  .AddItem(new MenuItem("Simulate", "Simulate Vayne").SetValue(new KeyBind('A', KeyBindType.Press)));
 
             Config.SubMenu("Combo")
     .AddItem(new MenuItem("Interupt", "Interupt spells").SetValue(true));
@@ -113,6 +113,9 @@ namespace Over9000_Rockets
                 if (hero.BaseSkinName == "Vayne" && hero.IsEnemy)
                 {
                     _vayne = true;
+                    vaynE = new Spell(SpellSlot.E, 550);
+                    vaynE.SetTargetted(0.25f,1600f);
+
                     //Game.PrintChat("vayne detected");
                 }
             }
@@ -124,7 +127,7 @@ namespace Over9000_Rockets
             {
                 Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
             }
-            
+
             Orbwalking.AfterAttack += OrbwalkingAfterAttack;
         }
 
@@ -133,11 +136,11 @@ namespace Over9000_Rockets
             if (R.IsReady() && unit.IsValidTarget(R.Range) && Config.SubMenu("Combo").Item("Interupt").GetValue<bool>())
             {
                 R.CastOnUnit(unit);
-            }             
+            }
         }
         static void OrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
         {
-           
+
             var vTarget = target as Obj_AI_Hero;
             if (vTarget == null || !unit.IsMe || Orbwalker.ActiveMode.ToString().ToLower() != "combo")
             {
@@ -155,10 +158,10 @@ namespace Over9000_Rockets
 
             if (vTarget.HasBuff("explosiveshotdebuff", true))
             {
-                damage += ((((_eTime - Game.Time) * E.GetDamage(vTarget)) / 5) - ((vTarget.HPRegenRate/2) * (_eTime - Game.Time)) );
+                damage += ((((_eTime - Game.Time) * E.GetDamage(vTarget)) / 5) - ((vTarget.HPRegenRate / 2) * (_eTime - Game.Time)));
             }
 
-            if ((damage > vTarget.Health) && ((damage - _player.GetAutoAttackDamage(vTarget,true)) < vTarget.Health) &&
+            if ((damage > vTarget.Health) && ((damage - _player.GetAutoAttackDamage(vTarget, true)) < vTarget.Health) &&
                 R.IsReady() && vTarget.Distance(_player.Position) <= R.Range)
             {
                 R.CastOnUnit(vTarget, UsePackets());
@@ -167,7 +170,7 @@ namespace Over9000_Rockets
 
             //double jump combo?
             //maybe check auto attack resets?
-            
+
         }
         // wtf is wrong with gapcloser fps abuse!?
 
@@ -183,7 +186,7 @@ namespace Over9000_Rockets
             {
                 for (int i = 0; i < 20; i++)
                 {
-                    if (sender.Position.To2D().Extend(_player.Position.To2D(), sender.Distance(_player) + 25*i).IsWall())
+                    if (sender.Position.To2D().Extend(_player.Position.To2D(), sender.Distance(_player) + 25 * i).IsWall())
                     {
                         if (W.IsReady())
                         {
@@ -200,7 +203,7 @@ namespace Over9000_Rockets
                         }
                     }
                 }
-              }
+            }
 
 
         }
@@ -218,6 +221,7 @@ namespace Over9000_Rockets
             {
                 R.CastOnUnit(vTarget, UsePackets());
             }
+
             /*
             if (Config.SubMenu("Combo").Item("Simulate").GetValue<KeyBind>().Active)
             {
@@ -249,19 +253,24 @@ namespace Over9000_Rockets
         {
             if (W.IsReady())
             {
+                if (gapcloser.End.Distance(_player.Position) > 700)
+                {
+                    return;
+                }
+            
                 _time = Game.Time;
-                if (CalcDamage(gapcloser.Sender) > gapcloser.Sender.Health && gapcloser.End.CountEnemysInRange(700) < 2) //NO YOU DONT.. run away ^^
+                if (CalcDamage(gapcloser.Sender) > gapcloser.Sender.Health && gapcloser.End.CountEnemysInRange(700) < 2 && !gapcloser.End.UnderTurret(true)) //NO YOU DONT.. run away ^^
                 {
                     W.Cast(gapcloser.End);
                     return;
                 }
                 foreach (var hero in ObjectManager.Get<Obj_AI_Hero>())
                 {
-                        if (W.GetDamage(hero) > hero.Health + 50 && hero.Distance(_player) < W.Range) // if anyone else is killable
-                        {
-                            W.Cast(hero.Position);
-                            return;
-                        }
+                    if (W.GetDamage(hero) > hero.Health + 50 && hero.Distance(_player) < W.Range && hero.Position.CountEnemysInRange(700) < 3) // if anyone else is killable
+                    {
+                        W.Cast(hero.Position);
+                        return;
+                    }
                 }
                 var dada = new Vector2(gapcloser.End.Extend(
                     _player.Position, _player.Distance(gapcloser.End) + W.Range).X, gapcloser.End.Extend(
@@ -279,7 +288,7 @@ namespace Over9000_Rockets
             }
             else //if not killable or more then 2 enemies around..
             {
-                if (R.IsReady() && (Game.Time - _time > 1) && (CalcDamage(gapcloser.Sender) < gapcloser.Sender.Health) || _player.CountEnemysInRange(1000) > 2)
+                if (R.IsReady() && (Game.Time - _time > 1) && (CalcDamage(gapcloser.Sender) < gapcloser.Sender.Health) || _player.CountEnemysInRange(R.Range) > 2)
                 {
                     R.CastOnUnit(gapcloser.Sender, UsePackets());
                 }
@@ -348,45 +357,37 @@ namespace Over9000_Rockets
             for (var i = 1; i < 13; i++)
             {
                 var newpos = _player.Position.To2D().Extend(_player.Direction.To2D(), W.Range).RotateAroundPoint(_player.Position.To2D(), angle * i);
-                    if (!newpos.IsWall() && newpos.To3D().CountEnemysInRange(700) <= 1 && !newpos.To3D().UnderTurret(true))
-                    {
-                        W.Cast(newpos);
-                    }
+                if (!newpos.IsWall() && newpos.To3D().CountEnemysInRange(700) <= 1 && !newpos.To3D().UnderTurret(true))
+                {
+                    W.Cast(newpos);
+                }
             }
         }
 
         private static void EscapeVayne(Obj_AI_Base vayne) //gapcloser
         {
-            //Wspeed = 2500
+            //Wspeed = 700
             //eSpeed = 1200
 
             var angle = Geometry.DegreeToRadian(15);
-            var realtime = (vayne.Distance(_player) / 1200); // time to hit me
-            var direction = (_player.Position - vayne.Position).Normalized() * (vayne.Position.Distance(_player.Position) + 450) + vayne.Position;
-            var direction2 = (_player.Position - vayne.Position).Normalized() * vayne.Position.Distance(_player.Position) + vayne.Position;
-            
+            var realtime = (vayne.Distance(_player) / 1700); // time to hit me
+            //var direction = (_player.Position - vayne.Position).Normalized() * (vayne.Position.Distance(_player.Position) + 450) + vayne.Position;
+            //  var direction2 = (_player.Position - vayne.Position).Normalized() * vayne.Position.Distance(_player.Position) + vayne.Position;
+
 
             for (var i = 1; i < 25; i++)
             {
 
                 realpos = _player.Position.To2D().Extend(_player.Direction.To2D(), realtime * 700).RotateAroundPoint(_player.Position.To2D(), angle * i);
-                var realpointTime = vayne.Distance(realpos)/1200;
-                realpos = realpos.Extend(_player.Position.To2D(), (realtime - realpointTime)*700);
-                
-                /*
-                if (!vayne.Position.To2D().Extend(_player.Position.To2D(), vayne.Distance(_player.Position) + 550 + 300).IsWall())
-                {
-                    W.Cast(
-                        vayne.Position.Extend(_player.Position, vayne.Distance(_player) + realtime * 700));
-                    return;
+                var realpointTime = vayne.Distance(realpos) / 1700;
+                realpos = realpos.Extend(_player.Position.To2D(), (realtime - realpointTime) * 700);
 
-                }
-                */
                 realpos2 = vayne.Position.Extend(realpos.To3D(), vayne.Distance(realpos) + 550).To2D();
                 if (!vayne.Position.Extend(realpos.To3D(), vayne.Distance(realpos) + 550).IsWall())
                 {
                     //Game.PrintChat("Methode 1");
                     W.Cast(_player.Position.To2D().Extend(realpos, 900));
+                    _player.IssueOrder(GameObjectOrder.HoldPosition, _player);
                     return;
                 }
             }
@@ -439,7 +440,8 @@ namespace Over9000_Rockets
         {
             if (_fizz)
             {
-                if (ObjectManager.Get<Obj_AI_Hero>().Any(hero => vTarget != hero && hero.BaseSkinName == "Fizz" && !hero.IsTargetable && hero.Distance(_player) < _player.AttackRange && vTarget.Health > CalcDamage(vTarget))) {
+                if (ObjectManager.Get<Obj_AI_Hero>().Any(hero => vTarget != hero && hero.BaseSkinName == "Fizz" && !hero.IsTargetable && hero.Distance(_player) < _player.AttackRange && vTarget.Health > CalcDamage(vTarget)))
+                {
                     return;
                 }
             }
