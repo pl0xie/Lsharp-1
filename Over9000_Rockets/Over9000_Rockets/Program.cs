@@ -97,8 +97,9 @@ namespace Over9000_Rockets
             Config.SubMenu("Settings").AddItem(new MenuItem("DrawD", "Draw damage?").SetValue(true));
             Config.AddSubMenu(new Menu("Escape", "Escape"));
             Config.SubMenu("Escape")
-                .AddItem(new MenuItem("allowEnemies", "Enemies allowed around?").SetValue(new Slider(0, 0, 5)));
+                .AddItem(new MenuItem("allowEnemies", "Enemies around to jump").SetValue(new Slider(0, 0, 5)));
             Config.SubMenu("Escape").AddItem(new MenuItem("gapcloser", "Allow Gapcloser?")).SetValue(true);
+            
             Config.SubMenu("Escape").AddSubMenu(new Menu("Melee", "Melee"));
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
             {
@@ -108,6 +109,25 @@ namespace Over9000_Rockets
                         .SubMenu("Melee")
                         .AddItem(new MenuItem(enemy.BaseSkinName, enemy.BaseSkinName).SetValue(false));
                 }
+                if (enemy.IsEnemy)
+                {
+                    if (enemy.BaseSkinName == "Fizz")
+                    {
+                        Config.SubMenu("Escape").AddItem(new MenuItem("fizz", "Allow Anti-Fizz")).SetValue(false);
+                    }
+
+                    if (enemy.BaseSkinName == "Zed")
+                    {
+                        Config.SubMenu("Escape").AddItem(new MenuItem("zed", "Allow Anti-Zed")).SetValue(false);
+                    }
+
+                    if (enemy.BaseSkinName == "Vayne")
+                    {
+                        Config.SubMenu("Escape").AddItem(new MenuItem("vayne", "Allow Anti-Vayne(Beta)")).SetValue(true);
+                        //Game.PrintChat("vayne detected");
+                    }
+                }
+
             }
 
 
@@ -115,27 +135,6 @@ namespace Over9000_Rockets
 
             _igniteSlot = _player.GetSpellSlot("SummonerDot");
 
-            foreach (var hero in ObjectManager.Get<Obj_AI_Hero>())
-            {
-                if (hero.BaseSkinName == "Fizz" && hero.IsEnemy)
-                {
-                    _fizz = true;
-                }
-
-                if (hero.BaseSkinName == "Zed" && hero.IsEnemy)
-                {
-                    _zed = true;
-                }
-
-                if (hero.BaseSkinName == "Vayne" && hero.IsEnemy)
-                {
-                    _vayne = true;
-                    vaynE = new Spell(SpellSlot.E, 550);
-                    vaynE.SetTargetted(0.25f,1600f);
-
-                    //Game.PrintChat("vayne detected");
-                }
-            }
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Interrupter.OnPossibleToInterrupt += Interrupter_OnPossibleToInterrupt;
             Game.OnGameUpdate += GameUpdate;
@@ -197,7 +196,8 @@ namespace Over9000_Rockets
             {
                 _zedTime = Game.Time;
             }
-
+            if (!Config.SubMenu("Escape").Item("vayne").GetValue<bool>())
+                return;
             if (sender.BaseSkinName == "Vayne" && sender.IsEnemy && args.SData.Name == sender.Spellbook.GetSpell(SpellSlot.E).SData.Name)
             {
                 for (int i = 0; i < 20; i++)
@@ -393,7 +393,6 @@ namespace Over9000_Rockets
 
             for (var i = 1; i < 25; i++)
             {
-
                 realpos = _player.Position.To2D().Extend(_player.Direction.To2D(), realtime * 700).RotateAroundPoint(_player.Position.To2D(), angle * i);
                 var realpointTime = vayne.Distance(realpos) / 1700;
                 realpos = realpos.Extend(_player.Position.To2D(), (realtime - realpointTime) * 700);
@@ -454,7 +453,7 @@ namespace Over9000_Rockets
 
         private static void Combo(Obj_AI_Hero vTarget)
         {
-            if (_fizz)
+            if (Config.SubMenu("Escape").Item("fizz").GetValue<bool>())
             {
                 if (ObjectManager.Get<Obj_AI_Hero>().Any(hero => vTarget != hero && hero.BaseSkinName == "Fizz" && !hero.IsTargetable && hero.Distance(_player) < _player.AttackRange && vTarget.Health > CalcDamage(vTarget)))
                 {
@@ -463,7 +462,7 @@ namespace Over9000_Rockets
             }
 
 
-            if (CalcDamage(vTarget) > vTarget.Health && W.IsReady() && vTarget.CountEnemysInRange(700) < 3 && !vTarget.Position.UnderTurret(true) && Config.SubMenu("Combo").Item("UseW").GetValue<bool>())
+            if (CalcDamage(vTarget) > vTarget.Health && W.IsReady() && vTarget.CountEnemysInRange(700) < 3 && !vTarget.Position.UnderTurret(true) && Config.SubMenu("Combo").Item("UseW").GetValue<bool >())
             {
                 W.Cast(vTarget.ServerPosition, UsePackets());
             }
@@ -480,15 +479,18 @@ namespace Over9000_Rockets
                     R.CastOnUnit(vTarget, UsePackets());
                 }
             }
+            if (Config.SubMenu("Escape").Item("Zed").GetValue<bool>())
+            {
+                if (!_player.HasBuff("zedulttargetmark", true))
+                {
+                    return;
+                }
+                foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.BaseSkinName == "Zed" && hero.IsTargetable && !W.IsReady() && _player.Distance(hero) <= hero.AttackRange + hero.BoundingRadius + _player.BoundingRadius + 50 && Game.Time - _zedTime > 3))
+                {
+                    R.CastOnUnit(hero, UsePackets());
+                }
+            }
 
-            if (!_player.HasBuff("zedulttargetmark", true))
-            {
-                return;
-            }
-            foreach (var hero in ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.BaseSkinName == "Zed" && hero.IsTargetable && !W.IsReady() && _player.Distance(hero) <= hero.AttackRange + hero.BoundingRadius + _player.BoundingRadius + 50 && Game.Time - _zedTime > 3))
-            {
-                R.CastOnUnit(hero, UsePackets());
-            }
         }
 
         private static bool UsePackets()
