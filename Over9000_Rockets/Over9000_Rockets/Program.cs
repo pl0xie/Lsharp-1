@@ -23,9 +23,7 @@ namespace Over9000_Rockets
 
         //Anti champs logic
         private static float _zedTime = 10;
-        private static bool _fizz;
-        private static bool _zed;
-        private static bool _vayne;
+        private static bool needProcess;
 
         //end
         public static HpBarIndicator Hpi = new HpBarIndicator();
@@ -118,13 +116,21 @@ namespace Over9000_Rockets
 
                     if (enemy.BaseSkinName == "Zed")
                     {
+                        needProcess = true;
                         Config.SubMenu("Escape").AddItem(new MenuItem("zed", "Allow Anti-Zed")).SetValue(false);
                     }
 
                     if (enemy.BaseSkinName == "Vayne")
                     {
+                        needProcess = true;
                         Config.SubMenu("Escape").AddItem(new MenuItem("vayne", "Allow Anti-Vayne(Beta)")).SetValue(true);
+                        
                         //Game.PrintChat("vayne detected");
+                    }
+
+                    if (needProcess)
+                    {
+                        Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
                     }
                 }
 
@@ -139,10 +145,6 @@ namespace Over9000_Rockets
             Interrupter.OnPossibleToInterrupt += Interrupter_OnPossibleToInterrupt;
             Game.OnGameUpdate += GameUpdate;
 
-            if (_zed || _vayne)
-            {
-                Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
-            }
 
             Orbwalking.AfterAttack += OrbwalkingAfterAttack;
         }
