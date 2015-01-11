@@ -351,7 +351,7 @@ namespace Over9000_Rockets
             }
             var angle = Geometry.DegreeToRadian(30);
 
-            for (var i = -6; i < 7; i++)
+            for (var i = -2; i < 10; i++)
             {
                 ObjectManager.Get<Obj_AI_Turret>().Where(unit => unit.IsAlly).OrderBy(unit => unit.Distance(_player)).First();
                 var newpos = _player.Position.To2D().Extend(ObjectManager.Get<Obj_AI_Turret>().Where(unit => unit.IsAlly).OrderBy(unit => unit.Distance(_player)).First().Position.To2D(), W.Range).RotateAroundPoint(_player.Position.To2D(), angle * i);
@@ -361,7 +361,7 @@ namespace Over9000_Rockets
                 }
             }
 
-            for (var i = -6; i < 7; i++)
+            for (var i = -2; i < 10; i++)
             {
                 var newpos = _player.Position.To2D().Extend(ObjectManager.Get<Obj_AI_Turret>().Where(unit => unit.IsAlly).OrderBy(unit => unit.Distance(_player)).First().Position.To2D(), W.Range).RotateAroundPoint(_player.Position.To2D(), angle * i);
                 if (!newpos.IsWall() && newpos.To3D().CountEnemysInRange(700) <= 1 && !newpos.To3D().UnderTurret(true))
