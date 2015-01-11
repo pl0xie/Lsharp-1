@@ -2,6 +2,7 @@
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using Microsoft.Win32;
 using SharpDX;
 using Color = System.Drawing.Color;
 
@@ -94,6 +95,22 @@ namespace Over9000_Rockets
             Config.SubMenu("Combo").AddItem(new MenuItem("UsePackets", "Use Packets?").SetValue(false));
             Config.AddSubMenu(new Menu("Settings", "Settings"));
             Config.SubMenu("Settings").AddItem(new MenuItem("DrawD", "Draw damage?").SetValue(true));
+            Config.AddSubMenu(new Menu("Escape", "Escape"));
+            Config.SubMenu("Escape")
+                .AddItem(new MenuItem("allowEnemies", "Enemies allowed around?").SetValue(new Slider(0, 0, 5)));
+            Config.SubMenu("Escape").AddItem(new MenuItem("gapcloser", "Allow Gapcloser?")).SetValue(true);
+            Config.SubMenu("Escape").AddSubMenu(new Menu("Melee", "Melee"));
+            foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
+            {
+                if (enemy.IsEnemy && enemy.IsMelee())
+                {
+                    Config.SubMenu("Escape")
+                        .SubMenu("Melee")
+                        .AddItem(new MenuItem(enemy.BaseSkinName, enemy.BaseSkinName).SetValue(false));
+                }
+            }
+
+
             Config.AddToMainMenu();
 
             _igniteSlot = _player.GetSpellSlot("SummonerDot");
@@ -176,7 +193,6 @@ namespace Over9000_Rockets
 
         static void Obj_AI_Base_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-
             if (sender.BaseSkinName == "Zed" && sender.IsEnemy && args.SData.Name.ToLower() == "zedult")
             {
                 _zedTime = Game.Time;
@@ -251,13 +267,13 @@ namespace Over9000_Rockets
         }
         public static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
-            if (W.IsReady())
+            if (!Config.SubMenu("Escape").Item("gapcloser").GetValue<bool>() || gapcloser.End.Distance(_player.Position) > 700)
             {
-                if (gapcloser.End.Distance(_player.Position) > 700)
-                {
-                    return;
-                }
-            
+                return;
+            }
+
+            if (W.IsReady())
+            {         
                 _time = Game.Time;
                 if (CalcDamage(gapcloser.Sender) > gapcloser.Sender.Health && gapcloser.End.CountEnemysInRange(700) < 2 && !gapcloser.End.UnderTurret(true)) //NO YOU DONT.. run away ^^
                 {
@@ -308,15 +324,15 @@ namespace Over9000_Rockets
         private static void EscapeCombo()
         {
             var enemycount = 0;
-            var melee = 0;
+     
             var zedult = 0;
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
             {
                 if (enemy.IsEnemy && _player.Distance(enemy) < enemy.AttackRange + enemy.BoundingRadius)
                 {
-                    if (enemy.IsMelee())
+                    if (Config.SubMenu("Escape").SubMenu("Melee").Item(enemy.BaseSkinName).GetValue<bool>())
                     {
-                        melee++;
+                        Escape();
                     }
                     enemycount++;
                 }
@@ -328,7 +344,7 @@ namespace Over9000_Rockets
                 }
             }
 
-            if (enemycount >= 3 || zedult == 1 || melee > 1)
+            if (enemycount >= Config.SubMenu("Escape").Item(("allowEnemies")).GetValue<Slider>().Value || zedult == 1)
             {
                 if (ObjectManager.Get<Obj_AI_Hero>().Where(hero => hero.IsEnemy && hero.Distance(_player.Position) <= W.Range && CalcDamage(hero) > hero.Health).ToList().Count == 0)
                 {
@@ -447,7 +463,7 @@ namespace Over9000_Rockets
             }
 
 
-            if (CalcDamage(vTarget) > vTarget.Health && W.IsReady() && vTarget.CountEnemysInRange(700) < 3 && !vTarget.Position.UnderTurret(true))
+            if (CalcDamage(vTarget) > vTarget.Health && W.IsReady() && vTarget.CountEnemysInRange(700) < 3 && !vTarget.Position.UnderTurret(true) && Config.SubMenu("Combo").Item("UseW").GetValue<bool>())
             {
                 W.Cast(vTarget.ServerPosition, UsePackets());
             }
