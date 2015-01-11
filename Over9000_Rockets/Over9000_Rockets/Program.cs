@@ -231,6 +231,7 @@ namespace Over9000_Rockets
             var vTarget = TargetSelector.GetTarget(W.Range + _player.AttackRange, TargetSelector.DamageType.Physical);
             E.Range = 630 + (_player.Level - 1) * 9;
             R.Range = E.Range;
+
             if (Orbwalker.ActiveMode.ToString().ToLower() == "combo")
             {
                 Combo(vTarget);
@@ -239,18 +240,6 @@ namespace Over9000_Rockets
             {
                 R.CastOnUnit(vTarget, UsePackets());
             }
-
-            /*
-            if (Config.SubMenu("Combo").Item("Simulate").GetValue<KeyBind>().Active)
-            {
-                var minion = MinionManager.GetMinions(_player.Position, 1000, MinionTypes.All);
-                if (minion[0] != null)
-                {
-                    EscapeVayne(minion[0]);
-                }
-                
-            }
-             * */
             if (Config.SubMenu("Combo").Item("Escape").GetValue<KeyBind>().Active)
             {
                 Escape();
@@ -269,7 +258,7 @@ namespace Over9000_Rockets
         }
         public static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
-            if (!Config.SubMenu("Escape").Item("gapcloser").GetValue<bool>() || gapcloser.End.Distance(_player.Position) > 700)
+            if (!Config.SubMenu("Escape").Item("gapcloser").GetValue<bool>() || gapcloser.Sender.Distance(_player.Position) > 700)
             {
                 return;
             }
@@ -384,30 +373,7 @@ namespace Over9000_Rockets
 
         private static void EscapeVayne(Obj_AI_Base vayne) //gapcloser
         {
-            //Wspeed = 700
-            //eSpeed = 1200
 
-            var angle = Geometry.DegreeToRadian(15);
-            var realtime = (vayne.Distance(_player) / 1700); // time to hit me
-            //var direction = (_player.Position - vayne.Position).Normalized() * (vayne.Position.Distance(_player.Position) + 450) + vayne.Position;
-            //  var direction2 = (_player.Position - vayne.Position).Normalized() * vayne.Position.Distance(_player.Position) + vayne.Position;
-
-
-            for (var i = 1; i < 25; i++)
-            {
-                realpos = _player.Position.To2D().Extend(_player.Direction.To2D(), realtime * 700).RotateAroundPoint(_player.Position.To2D(), angle * i);
-                var realpointTime = vayne.Distance(realpos) / 1700;
-                realpos = realpos.Extend(_player.Position.To2D(), (realtime - realpointTime) * 700);
-
-                realpos2 = vayne.Position.Extend(realpos.To3D(), vayne.Distance(realpos) + 550).To2D();
-                if (!vayne.Position.Extend(realpos.To3D(), vayne.Distance(realpos) + 550).IsWall())
-                {
-                    //Game.PrintChat("Methode 1");
-                    W.Cast(_player.Position.To2D().Extend(realpos, 900));
-                    _player.IssueOrder(GameObjectOrder.HoldPosition, _player);
-                    return;
-                }
-            }
             R.CastOnUnit(vayne, UsePackets());
         }
         private static int CalcDamage(Obj_AI_Base target)
