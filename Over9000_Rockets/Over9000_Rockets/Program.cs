@@ -351,19 +351,18 @@ namespace Over9000_Rockets
             }
             var angle = Geometry.DegreeToRadian(30);
 
-            for (var i = 1; i < 13; i++)
+            for (var i = -6; i < 7; i++)
             {
-                var newpos = _player.Position.To2D().Extend(_player.Direction.To2D(), W.Range).RotateAroundPoint(_player.Position.To2D(), angle * i);
-
+                var newpos = _player.Position.To2D().Extend(ObjectManager.Get<Obj_AI_Turret>().OrderBy(unit => _player.Distance(unit)).First().Position.To2D(), W.Range).RotateAroundPoint(_player.Position.To2D(), angle * i);
                 if (!_player.Position.UnderTurret(true) && _player.Position.UnderTurret(false))
                 {
                     W.Cast(newpos);
                 }
             }
 
-            for (var i = 1; i < 13; i++)
+            for (var i = -6; i < 7; i++)
             {
-                var newpos = _player.Position.To2D().Extend(_player.Direction.To2D(), W.Range).RotateAroundPoint(_player.Position.To2D(), angle * i);
+                var newpos = _player.Position.To2D().Extend(ObjectManager.Get<Obj_AI_Turret>().OrderBy(unit => _player.Distance(unit)).First().Position.To2D(), W.Range).RotateAroundPoint(_player.Position.To2D(), angle * i);
                 if (!newpos.IsWall() && newpos.To3D().CountEnemysInRange(700) <= 1 && !newpos.To3D().UnderTurret(true))
                 {
                     W.Cast(newpos);
