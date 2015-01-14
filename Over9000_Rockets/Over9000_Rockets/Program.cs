@@ -69,8 +69,7 @@ namespace Over9000_Rockets
             Config.SubMenu("Combo").AddItem(new MenuItem("UseW", "Use W?").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("UseE", "Use E?").SetValue(true));
             Config.SubMenu("Combo").AddItem(new MenuItem("UseR", "Use R?").SetValue(true));
-            Config.SubMenu("Combo")
-                .AddItem(new MenuItem("PressR", "Cast R").SetValue(new KeyBind('R', KeyBindType.Press)));
+            Config.SubMenu("Combo").AddItem(new MenuItem("PressR", "Cast R").SetValue(new KeyBind('R', KeyBindType.Press)));
             //Config.SubMenu("Combo")
             //  .AddItem(new MenuItem("Simulate", "Simulate Vayne").SetValue(new KeyBind('A', KeyBindType.Press)));
 
@@ -156,7 +155,10 @@ namespace Over9000_Rockets
                 return;
             }
 
-
+            if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(_player.Position) <= E.Range + 100) //Q Logic
+            {
+                Q.Cast(UsePackets());
+            }
             if (Config.Item("UseE").GetValue<bool>() && E.IsReady() && vTarget.Distance(_player.Position) <= E.Range)
             {
                 CastE(vTarget);
@@ -170,8 +172,7 @@ namespace Over9000_Rockets
                 damage += ((((_eTime - Game.Time) * E.GetDamage(vTarget)) / 5) - ((vTarget.HPRegenRate / 2) * (_eTime - Game.Time)));
             }
 
-            if ((damage > vTarget.Health) && ((damage - _player.GetAutoAttackDamage(vTarget, true)) < vTarget.Health) &&
-                R.IsReady() && vTarget.Distance(_player.Position) <= R.Range)
+            if ((damage > vTarget.Health) && R.IsReady() && vTarget.Distance(_player.Position) <= R.Range)
             {
                 R.CastOnUnit(vTarget, UsePackets());
             }
@@ -422,11 +423,6 @@ namespace Over9000_Rockets
             if (CalcDamage(vTarget) > vTarget.Health && W.IsReady() && vTarget.CountEnemysInRange(700) < 3 && !vTarget.Position.UnderTurret(true) && Config.SubMenu("Combo").Item("UseW").GetValue<bool>())
             {
                 W.Cast(vTarget.ServerPosition, UsePackets());
-            }
-
-            if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(_player.Position) <= E.Range + 100) //Q Logic
-            {
-                Q.Cast(UsePackets());
             }
 
             if (Config.Item("UseR").GetValue<bool>() && R.IsReady() && vTarget.Distance(_player.Position) <= R.Range)
