@@ -11,19 +11,19 @@ namespace Over9000_Rockets
     class Program
     {
         public static Orbwalking.Orbwalker Orbwalker;
-        public static Spell Q, W, E, R, vaynE;
+        public static Spell Q, W, E, R;
         public static Menu Config;
         private static Obj_AI_Hero _player;
         private static SpellSlot _igniteSlot;
         private static float _time = 10;
 
         private static float _eTime;
-        private static Vector2 realpos;
-        private static Vector2 realpos2;
+        //private static Vector2 realpos;
+        //private static Vector2 realpos2;
 
         //Anti champs logic
         private static float _zedTime = 10;
-        private static bool needProcess;
+        private static bool _needProcess;
 
         //end
         public static HpBarIndicator Hpi = new HpBarIndicator();
@@ -45,14 +45,6 @@ namespace Over9000_Rockets
                     Hpi.drawDmg(CalcDamage(enemy), Color.DarkGreen);
                 }
             }
-            if (realpos != null && realpos2 != null)
-            {
-
-                Geometry.Draw.DrawRing(realpos.To3D(), 100, 100, Color.Red);
-                Geometry.Draw.DrawRing(realpos2.To3D(), 100, 100, Color.Red);
-            }
-
-
         }
 
         private static void OnGameLoad(EventArgs args)
@@ -95,9 +87,8 @@ namespace Over9000_Rockets
             Config.SubMenu("Settings").AddItem(new MenuItem("DrawD", "Draw damage?").SetValue(true));
             Config.AddSubMenu(new Menu("Escape", "Escape"));
             Config.SubMenu("Escape")
-                .AddItem(new MenuItem("allowEnemies", "Enemies around to jump").SetValue(new Slider(0, 0, 5)));
-            Config.SubMenu("Escape").AddItem(new MenuItem("gapcloser", "Allow Gapcloser?")).SetValue(true);
-            
+                .AddItem(new MenuItem("allowEnemies", "Enemies around to jump").SetValue(new Slider(0, 2, 5)));
+            Config.SubMenu("Escape").AddItem(new MenuItem("gapcloser", "Allow Gapcloser?")).SetValue(true);         
             Config.SubMenu("Escape").AddSubMenu(new Menu("Melee", "Melee"));
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
             {
@@ -116,19 +107,19 @@ namespace Over9000_Rockets
 
                     if (enemy.BaseSkinName == "Zed")
                     {
-                        needProcess = true;
+                        _needProcess = true;
                         Config.SubMenu("Escape").AddItem(new MenuItem("zed", "Allow Anti-Zed")).SetValue(false);
                     }
 
                     if (enemy.BaseSkinName == "Vayne")
                     {
-                        needProcess = true;
+                        _needProcess = true;
                         Config.SubMenu("Escape").AddItem(new MenuItem("vayne", "Allow Anti-Vayne(Beta)")).SetValue(true);
                         
                         //Game.PrintChat("vayne detected");
                     }
 
-                    if (needProcess)
+                    if (_needProcess)
                     {
                         Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
                     }
@@ -211,13 +202,10 @@ namespace Over9000_Rockets
                             EscapeVayne(sender);
                             break;
                         }
-                        else
+                        if (sender.Distance(_player) <= R.Range)
                         {
-                            if (sender.Distance(_player) <= R.Range)
-                            {
-                                R.CastOnUnit(sender);
-                                break;
-                            }
+                            R.CastOnUnit(sender);
+                            break;
                         }
                     }
                 }
@@ -228,7 +216,7 @@ namespace Over9000_Rockets
 
         private static void GameUpdate(EventArgs args)
         {
-            var vTarget = TargetSelector.GetTarget(W.Range + _player.AttackRange, TargetSelector.DamageType.Physical);
+            var vTarget = TargetSelector.GetTarget(W.Range + E.Range, TargetSelector.DamageType.Physical);
             E.Range = 630 + (_player.Level - 1) * 9;
             R.Range = E.Range;
 
@@ -258,7 +246,7 @@ namespace Over9000_Rockets
         }
         public static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
-            if (!Config.SubMenu("Escape").Item("gapcloser").GetValue<bool>() || gapcloser.Sender.Distance(_player.Position) > 700)
+            if (!Config.SubMenu("Escape").Item("gapcloser").GetValue<bool>() || gapcloser.Sender.Distance(_player.Position) > 700 || !Config.SubMenu("Combo").Item("UseW").GetValue<bool>())
             {
                 return;
             }
@@ -345,7 +333,7 @@ namespace Over9000_Rockets
         }
         private static void Escape() //gapcloser
         {
-            if (!W.IsReady())
+            if (!W.IsReady() || !Config.SubMenu("Combo").Item("UseW").GetValue<bool>())
             {
                 return;
             }
@@ -373,9 +361,9 @@ namespace Over9000_Rockets
 
         private static void EscapeVayne(Obj_AI_Base vayne) //gapcloser
         {
-
             R.CastOnUnit(vayne, UsePackets());
         }
+
         private static int CalcDamage(Obj_AI_Base target)
         {
             //var vTarget = SimpleTs.GetTarget(Q.Range, SimpleTs.DamageType.Physical);
@@ -423,19 +411,19 @@ namespace Over9000_Rockets
         {
             if (Config.SubMenu("Escape").Item("fizz").GetValue<bool>())
             {
-                if (ObjectManager.Get<Obj_AI_Hero>().Any(hero => vTarget != hero && hero.BaseSkinName == "Fizz" && !hero.IsTargetable && hero.Distance(_player) < _player.AttackRange && vTarget.Health > CalcDamage(vTarget)))
+                if (ObjectManager.Get<Obj_AI_Hero>().Any(hero => vTarget != hero && hero.BaseSkinName == "Fizz" && !hero.IsTargetable && hero.Distance(_player) < E.Range && vTarget.Health > CalcDamage(vTarget)))
                 {
                     return;
                 }
             }
 
 
-            if (CalcDamage(vTarget) > vTarget.Health && W.IsReady() && vTarget.CountEnemysInRange(700) < 3 && !vTarget.Position.UnderTurret(true) && Config.SubMenu("Combo").Item("UseW").GetValue<bool >())
+            if (CalcDamage(vTarget) > vTarget.Health && W.IsReady() && vTarget.CountEnemysInRange(700) < 3 && !vTarget.Position.UnderTurret(true) && Config.SubMenu("Combo").Item("UseW").GetValue<bool>())
             {
                 W.Cast(vTarget.ServerPosition, UsePackets());
             }
 
-            if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(_player.Position) <= _player.AttackRange) //Q Logic
+            if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(_player.Position) <= E.Range) //Q Logic
             {
                 Q.Cast(UsePackets());
             }
