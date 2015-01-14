@@ -216,10 +216,10 @@ namespace Over9000_Rockets
 
         private static void GameUpdate(EventArgs args)
         {
-            var vTarget = TargetSelector.GetTarget(W.Range + E.Range, TargetSelector.DamageType.Physical);
+           
             E.Range = 630 + (_player.Level - 1) * 9;
             R.Range = E.Range;
-
+            var vTarget = TargetSelector.GetTarget(W.Range + E.Range, TargetSelector.DamageType.Physical);
             if (Orbwalker.ActiveMode.ToString().ToLower() == "combo")
             {
                 Combo(vTarget);
@@ -423,7 +423,7 @@ namespace Over9000_Rockets
                 W.Cast(vTarget.ServerPosition, UsePackets());
             }
 
-            if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(_player.Position) <= E.Range) //Q Logic
+            if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(_player.Position) <= E.Range + 100) //Q Logic
             {
                 Q.Cast(UsePackets());
             }
