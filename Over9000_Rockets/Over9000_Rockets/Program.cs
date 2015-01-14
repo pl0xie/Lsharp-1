@@ -417,7 +417,8 @@ namespace Over9000_Rockets
                 }
             }
 
-
+            if (_igniteSlot != SpellSlot.Unknown && _player.Spellbook.CanUseSpell(_igniteSlot) == SpellState.Ready)
+                _player.Spellbook.CastSpell(_igniteSlot, vTarget);
             if (CalcDamage(vTarget) > vTarget.Health && W.IsReady() && vTarget.CountEnemysInRange(700) < 3 && !vTarget.Position.UnderTurret(true) && Config.SubMenu("Combo").Item("UseW").GetValue<bool>())
             {
                 W.Cast(vTarget.ServerPosition, UsePackets());
