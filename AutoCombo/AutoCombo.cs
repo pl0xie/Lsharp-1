@@ -57,7 +57,7 @@ string[] spelllist = {"EzrealTrueshotBarrage", "LuxMaliceCannon" ,"EnchantedCrys
                 {
                     _skillshot = new Geometry.Polygon.Rectangle(sender.Position, sender.Position.Extend(args.End, sender.Distance(args.End)), args.SData.LineWidth - 50);
                 }
-                foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(enemy => enemy.IsEnemy))
+                foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(enemy => enemy.IsEnemy && enemy.Distance(Player) <= R.Range))
                 {
                     var predict = Prediction.GetPrediction(enemy, 500f, args.SData.LineWidth - 50, args.SData.MissileSpeed);
                     var predictme = Prediction.GetPrediction(enemy, 500f, R.Width, R.Speed);

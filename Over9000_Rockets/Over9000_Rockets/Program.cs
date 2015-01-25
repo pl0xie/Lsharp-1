@@ -5,7 +5,6 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using Microsoft.Win32;
 using SharpDX;
-using SimpleLib;
 using Color = System.Drawing.Color;
 
 namespace Over9000_Rockets
