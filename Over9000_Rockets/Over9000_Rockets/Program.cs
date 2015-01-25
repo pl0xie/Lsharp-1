@@ -1,9 +1,11 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
 using Microsoft.Win32;
 using SharpDX;
+using SimpleLib;
 using Color = System.Drawing.Color;
 
 namespace Over9000_Rockets
@@ -31,9 +33,7 @@ namespace Over9000_Rockets
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
             Drawing.OnEndScene += OnEndScene;
-
         }
-
         private static void OnEndScene(EventArgs args)
         {
             if (Config.SubMenu("Settings").Item("DrawD").GetValue<bool>())
@@ -91,7 +91,7 @@ namespace Over9000_Rockets
             Config.SubMenu("Escape").AddSubMenu(new Menu("Melee", "Melee"));
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
             {
-                if (enemy.IsEnemy && enemy.IsMelee())
+                if (enemy.IsEnemy && Orbwalking.IsMelee(enemy))
                 {
                     Config.SubMenu("Escape")
                         .SubMenu("Melee")
@@ -148,13 +148,11 @@ namespace Over9000_Rockets
         }
         static void OrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
         {
-
             var vTarget = target as Obj_AI_Hero;
             if (vTarget == null || !unit.IsMe || Orbwalker.ActiveMode.ToString().ToLower() != "combo")
             {
                 return;
             }
-
             if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(_player.Position) <= E.Range + 100) //Q Logic
             {
                 Q.Cast(UsePackets());
@@ -172,7 +170,7 @@ namespace Over9000_Rockets
                 damage += ((((_eTime - Game.Time) * E.GetDamage(vTarget)) / 5) - ((vTarget.HPRegenRate / 2) * (_eTime - Game.Time)));
             }
 
-            if ((damage > vTarget.Health) && R.IsReady() && vTarget.Distance(_player.Position) <= R.Range)
+            if ((damage > vTarget.Health) && R.IsReady() && vTarget.Distance(_player.Position) <= R.Range && Config.Item("UseR").GetValue<bool>())
             {
                 R.CastOnUnit(vTarget, UsePackets());
             }
@@ -217,7 +215,6 @@ namespace Over9000_Rockets
 
         private static void GameUpdate(EventArgs args)
         {
-           
             E.Range = 630 + (_player.Level - 1) * 9;
             R.Range = E.Range;
             var vTarget = TargetSelector.GetTarget(W.Range + E.Range, TargetSelector.DamageType.Physical);
@@ -343,7 +340,7 @@ namespace Over9000_Rockets
             for (var i = -2; i < 10; i++)
             {
                 ObjectManager.Get<Obj_AI_Turret>().Where(unit => unit.IsAlly).OrderBy(unit => unit.Distance(_player)).First();
-                var newpos = _player.Position.To2D().Extend(ObjectManager.Get<Obj_AI_Turret>().Where(unit => unit.IsAlly).OrderBy(unit => unit.Distance(_player)).First().Position.To2D(), W.Range).RotateAroundPoint(_player.Position.To2D(), angle * i);
+                var newpos = Geometry.RotateAroundPoint(_player.Position.To2D().Extend(ObjectManager.Get<Obj_AI_Turret>().Where(unit => unit.IsAlly).OrderBy(unit => unit.Distance(_player)).First().Position.To2D(), W.Range), _player.Position.To2D(), angle * i);
                 if (!_player.Position.UnderTurret(true) && _player.Position.UnderTurret(false))
                 {
                     W.Cast(newpos);
@@ -352,7 +349,7 @@ namespace Over9000_Rockets
 
             for (var i = -2; i < 10; i++)
             {
-                var newpos = _player.Position.To2D().Extend(ObjectManager.Get<Obj_AI_Turret>().Where(unit => unit.IsAlly).OrderBy(unit => unit.Distance(_player)).First().Position.To2D(), W.Range).RotateAroundPoint(_player.Position.To2D(), angle * i);
+                var newpos = Geometry.RotateAroundPoint(_player.Position.To2D().Extend(ObjectManager.Get<Obj_AI_Turret>().Where(unit => unit.IsAlly).OrderBy(unit => unit.Distance(_player)).First().Position.To2D(), W.Range), _player.Position.To2D(), angle * i);
                 if (!newpos.IsWall() && newpos.To3D().CountEnemysInRange(700) <= 1 && !newpos.To3D().UnderTurret(true))
                 {
                     W.Cast(newpos);
@@ -410,6 +407,7 @@ namespace Over9000_Rockets
 
         private static void Combo(Obj_AI_Hero vTarget)
         {
+
             if (Config.SubMenu("Escape").Item("fizz").GetValue<bool>())
             {
                 if (ObjectManager.Get<Obj_AI_Hero>().Any(hero => vTarget != hero && hero.BaseSkinName == "Fizz" && !hero.IsTargetable && hero.Distance(_player) < E.Range && vTarget.Health > CalcDamage(vTarget)))
@@ -443,6 +441,10 @@ namespace Over9000_Rockets
                     R.CastOnUnit(hero, UsePackets());
                 }
             }
+
+
+
+
 
         }
 

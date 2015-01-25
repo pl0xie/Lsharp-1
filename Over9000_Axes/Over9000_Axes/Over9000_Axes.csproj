@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5CC1A41F-2113-40E3-A5AC-67B41DFBED5A}</ProjectGuid>
+    <ProjectGuid>{2B9883CA-C28F-4FC7-A06F-0D893C24F259}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Autocombo</RootNamespace>
-    <AssemblyName>Autocombo</AssemblyName>
+    <RootNamespace>Over9000_Axes</RootNamespace>
+    <AssemblyName>Over9000_Axes</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <PreBuildEvent />
@@ -35,12 +35,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DevCommom">
-      <HintPath>C:\Users\Dudi\Downloads\LeagueSharp\\System\DevCommom.dll</HintPath>
-    </Reference>
-    <Reference Include="Evade">
-      <HintPath>C:\Users\Dudi\Downloads\LeagueSharp\\System\Evade.dll</HintPath>
-    </Reference>
     <Reference Include="LeagueSharp">
       <HintPath>C:\Users\Dudi\Downloads\LeagueSharp\\System\LeagueSharp.dll</HintPath>
     </Reference>
@@ -52,7 +46,6 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -60,8 +53,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AutoCombo.cs" />
-    <Compile Include="Functions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
