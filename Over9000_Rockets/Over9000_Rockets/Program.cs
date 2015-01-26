@@ -85,7 +85,7 @@ namespace Over9000_Rockets
             Config.SubMenu("Settings").AddItem(new MenuItem("DrawD", "Draw damage?").SetValue(true));
             Config.AddSubMenu(new Menu("Escape", "Escape"));
             Config.SubMenu("Escape")
-                .AddItem(new MenuItem("allowEnemies", "Enemies around to jump").SetValue(new Slider(0, 2, 5)));
+                .AddItem(new MenuItem("allowEnemies", "Enemies around to jump").SetValue(new Slider(3, 2, 5)));
             Config.SubMenu("Escape").AddItem(new MenuItem("gapcloser", "Allow Gapcloser?")).SetValue(true);         
             Config.SubMenu("Escape").AddSubMenu(new Menu("Melee", "Melee"));
             foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>())
