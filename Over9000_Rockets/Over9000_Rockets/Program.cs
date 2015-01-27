@@ -148,18 +148,31 @@ namespace Over9000_Rockets
         static void OrbwalkingAfterAttack(AttackableUnit unit, AttackableUnit target)
         {
             var vTarget = target as Obj_AI_Hero;
-            if (vTarget == null || !unit.IsMe || Orbwalker.ActiveMode.ToString().ToLower() != "combo")
+            if (vTarget == null || !unit.IsMe)
             {
                 return;
             }
-            if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(_player.Position) <= E.Range + 100) //Q Logic
+
+            if (Orbwalker.ActiveMode.ToString().ToLower() != "combo")
             {
-                Q.Cast(UsePackets());
+                if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(_player.Position) <= E.Range + 100) //Q Logic
+                {
+                    Q.Cast(UsePackets());
+                }
+                if (Config.Item("UseE").GetValue<bool>() && E.IsReady() && vTarget.Distance(_player.Position) <= E.Range)
+                {
+                    CastE(vTarget);
+                }
             }
-            if (Config.Item("UseE").GetValue<bool>() && E.IsReady() && vTarget.Distance(_player.Position) <= E.Range)
+
+            if (Orbwalker.ActiveMode.ToString().ToLower() != "mixed")
             {
-                CastE(vTarget);
+                if (Config.Item("UseEH").GetValue<bool>() && E.IsReady() && vTarget.Distance(_player.Position) <= E.Range)
+                {
+                    CastE(vTarget);
+                }
             }
+
 
             var damage = _player.GetAutoAttackDamage(vTarget, true) + R.GetDamage(vTarget);
 
