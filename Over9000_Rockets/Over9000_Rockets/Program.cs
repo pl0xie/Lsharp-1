@@ -153,9 +153,9 @@ namespace Over9000_Rockets
                 return;
             }
 
-            if (Orbwalker.ActiveMode.ToString().ToLower() != "combo")
+            if (Orbwalker.ActiveMode.ToString().ToLower() == "combo")
             {
-                if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(_player.Position) <= E.Range + 100) //Q Logic
+                if (Q.IsReady() && Config.Item("UseQ").GetValue<bool>() && vTarget.Distance(_player.Position) <= E.Range) //Q Logic
                 {
                     Q.Cast(UsePackets());
                 }
@@ -165,7 +165,7 @@ namespace Over9000_Rockets
                 }
             }
 
-            if (Orbwalker.ActiveMode.ToString().ToLower() != "mixed")
+            if (Orbwalker.ActiveMode.ToString().ToLower() == "mixed")
             {
                 if (Config.Item("UseEH").GetValue<bool>() && E.IsReady() && vTarget.Distance(_player.Position) <= E.Range)
                 {

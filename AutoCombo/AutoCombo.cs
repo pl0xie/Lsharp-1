@@ -54,6 +54,7 @@ string[] spelllist = {"EzrealTrueshotBarrage", "LuxMaliceCannon" ,"EnchantedCrys
                 if (i <= 11) // this is a skillshot
                 {
                     _skillshot = new Geometry.Polygon.Rectangle(sender.Position, sender.Position.Extend(args.End, args.SData.CastRange.FirstOrDefault()), args.SData.LineWidth - 50);
+                    
                 }
                 else //this is aoe
                 {
@@ -67,9 +68,10 @@ string[] spelllist = {"EzrealTrueshotBarrage", "LuxMaliceCannon" ,"EnchantedCrys
                         predict = Prediction.GetPrediction(enemy, 500f, args.SData.LineWidth - 50, args.SData.MissileSpeed);
                     }
                     else
-                    { 
+                    {
                         predict = Prediction.GetPrediction(enemy, 500f, args.SData.CastRadius[0], args.SData.MissileSpeed);
                     }
+                    
                     
                     var predictme = Prediction.GetPrediction(enemy, 500f, R.Width, R.Speed);
 
