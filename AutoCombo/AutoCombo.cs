@@ -16,7 +16,7 @@ public static Spell R;
 public DamageSpell Allydamage;
 public DamageSpell Mydamage;
 private static Geometry.Polygon.Rectangle _skillshot;
-
+private float drawTime = 0;
 public Autocombo()
 {
     CustomEvents.Game.OnGameLoad += OnGameLoad;
@@ -49,6 +49,7 @@ string[] spelllist = {"EzrealTrueshotBarrage", "LuxMaliceCannon" ,"EnchantedCrys
         {
             if (args.SData.Name == spelllist[i])
             {
+                drawTime = Game.Time;
                 if (i <= 12) // this is a skillshot
                 {
                     _skillshot = new Geometry.Polygon.Rectangle(sender.Position, sender.Position.Extend(args.End, args.SData.CastRange.FirstOrDefault()), args.SData.LineWidth - 50);
@@ -109,7 +110,7 @@ string[] spelllist = {"EzrealTrueshotBarrage", "LuxMaliceCannon" ,"EnchantedCrys
 
 void Drawing_OnEndScene(EventArgs args)
 {
-    if (_skillshot != null)
+    if (_skillshot != null && Game.Time-drawTime<=2)
     {
         _skillshot.Draw(Color.Blue, 2);
     }
