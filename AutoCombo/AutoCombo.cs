@@ -16,6 +16,7 @@ public static Spell R;
 public DamageSpell Allydamage;
 public DamageSpell Mydamage;
 private static Geometry.Polygon.Rectangle _skillshot;
+private static Geometry.Polygon.Circle _skillshotAOE;
 private float drawTime = 0;
 public Autocombo()
 {
@@ -50,23 +51,32 @@ string[] spelllist = {"EzrealTrueshotBarrage", "LuxMaliceCannon" ,"EnchantedCrys
             if (args.SData.Name == spelllist[i])
             {
                 drawTime = Game.Time;
-                if (i <= 12) // this is a skillshot
+                if (i <= 11) // this is a skillshot
                 {
                     _skillshot = new Geometry.Polygon.Rectangle(sender.Position, sender.Position.Extend(args.End, args.SData.CastRange.FirstOrDefault()), args.SData.LineWidth - 50);
                 }
                 else //this is aoe
                 {
-                    _skillshot = new Geometry.Polygon.Rectangle(sender.Position, sender.Position.Extend(args.End, sender.Distance(args.End)), args.SData.LineWidth - 50);
+                    _skillshotAOE = new Geometry.Polygon.Circle(args.End, args.SData.CastRadius[0]);
                 }
                 foreach (var enemy in ObjectManager.Get<Obj_AI_Hero>().Where(enemy => enemy.IsEnemy && enemy.Distance(Player) <= R.Range))
                 {
-                    var predict = Prediction.GetPrediction(enemy, 500f, args.SData.LineWidth - 50, args.SData.MissileSpeed);
+                    PredictionOutput predict = new PredictionOutput();
+                    if (i <=11)
+                    {
+                        predict = Prediction.GetPrediction(enemy, 500f, args.SData.LineWidth - 50, args.SData.MissileSpeed);
+                    }
+                    else
+                    { 
+                        predict = Prediction.GetPrediction(enemy, 500f, args.SData.CastRadius[0], args.SData.MissileSpeed);
+                    }
+                    
                     var predictme = Prediction.GetPrediction(enemy, 500f, R.Width, R.Speed);
 
 
                     if (!_skillshot.IsInside(predict.UnitPosition))
                     {
-                        continue;
+                        break;
                     }
 
 
@@ -110,9 +120,13 @@ string[] spelllist = {"EzrealTrueshotBarrage", "LuxMaliceCannon" ,"EnchantedCrys
 
 void Drawing_OnEndScene(EventArgs args)
 {
-    if (_skillshot != null && Game.Time-drawTime<=2)
+    if (_skillshot != null && Game.Time - drawTime <= 2)
     {
         _skillshot.Draw(Color.Blue, 2);
+    }
+    if (_skillshotAOE != null && Game.Time - drawTime <= 2)
+    {
+        _skillshotAOE.Draw(Color.Blue, 2);
     }
 
 }
