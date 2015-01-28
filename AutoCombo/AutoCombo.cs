@@ -19,7 +19,7 @@ namespace Autocombo
         public DamageSpell Allydamage;
         public DamageSpell Mydamage;
         private static Geometry.Polygon.Rectangle _skillshot;
-        private static Geometry.Polygon.Circle _skillshotAOE;
+        private static Geometry.Polygon.Circle _skillshotAoe;
         private float drawTime;
 
 
@@ -33,6 +33,13 @@ namespace Autocombo
             //Debugger.Launch();
             Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast;
             Player = ObjectManager.Player;
+            R = new Spell(SpellSlot.R, 1000);
+            var special = SpellDatabase.GetByName(Player.Spellbook.GetSpell(SpellSlot.R).Name);
+            if (special != null)
+            {
+                R = new Spell(SpellSlot.R, special.Range);
+                R.SetSkillshot(special.Delay, special.Radius, special.MissileSpeed, false, SkillshotType.SkillshotLine);
+            }
             Config = new Menu("Auto Sick Combo", "AutoCombo", true);
             Config.AddSubMenu(new Menu("AutoCombo Settings", "AutoCombo"));
             Config.AddSubMenu(new Menu("Spells", "AutoCombo_Spells"));
@@ -42,25 +49,32 @@ namespace Autocombo
             
             foreach (var ally in ObjectManager.Get<Obj_AI_Hero>().Where(ally => ally.IsAlly && !ally.IsMe)) //!ally.isme
             {
-                if (!Spells.Contains(ally.GetSpell(SpellSlot.R).SData.Name) && SpellDatabase.GetByName(ally.GetSpell(SpellSlot.R).SData.Name).Range > 0)
+                if (!Spells.Contains(ally.GetSpell(SpellSlot.R).SData.Name))
                 {
                     Spells.Add(ally.GetSpell(SpellSlot.R).SData.Name);
-                    Config.SubMenu("AutoCombo_Spells").AddItem(new MenuItem(ally.GetSpell(SpellSlot.R).SData.Name, ally.BaseSkinName + " Ultimate")).SetValue(true);
+                    var result = SpellDatabase.GetByName(ally.GetSpell(SpellSlot.R).SData.Name);
+                    if (result != null)
+                    {
+                        Config.SubMenu("AutoCombo_Spells").AddItem(new MenuItem(ally.GetSpell(SpellSlot.R).SData.Name, ally.BaseSkinName + " Ultimate")).SetValue(true);
+                    }
+                    else
+                    {
+                        Config.SubMenu("AutoCombo_Spells").AddItem(new MenuItem(ally.GetSpell(SpellSlot.R).SData.Name, ally.BaseSkinName + " Ultimate(only if targetable)")).SetValue(true);
+                    }
+                    
                 }
             }
             Config.AddToMainMenu();
-            Game.PrintChat("<font color='#F7A100'>Auto Combo by XcxooxL Loaded 1.0 .</font>");
-            Game.PrintChat("<font color='#F7A100'>Credits to Diabaths and Pingo for helping me test =]]] </font>");
+            Game.PrintChat("<font color='#F7A100'>Auto Combo by XcxooxL Loaded 2.0 .</font>");
+            Game.PrintChat("<font color='#F7A100'>Credits to Nanaya for helping me test =]]] </font>");
             Drawing.OnEndScene += Drawing_OnEndScene;
-            checkChamp();
-            setUltimate();
+            CheckChamp();
+            SetUltimate();
         }
 
         private void Obj_AI_Base_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            var targetable = false;
-            var line = false;
-            var aoe = false;
+
             PredictionInput input = null;
             if (sender.IsMe || sender.IsEnemy || !(sender is Obj_AI_Hero))
             {
@@ -70,35 +84,41 @@ namespace Autocombo
             {
                 return;
             }
-            
+            var targetable = false;
+            var line = false;
+            var aoe = false;
             drawTime = Game.Time;
-            var result = SpellDatabase.GetByName(args.SData.Name);
 
-            switch (result.Type)
+            var result = SpellDatabase.GetByName(args.SData.Name);
+            if (result != null)
             {
-                case SkillShotType.SkillshotLine:
-                    _skillshot = new Geometry.Polygon.Rectangle(sender.Position, sender.Position.Extend(args.End, result.Range), result.Radius);
-                    line = true;
-                    break;
-                case SkillShotType.SkillshotMissileLine:
-                    _skillshot = new Geometry.Polygon.Rectangle(sender.Position, sender.Position.Extend(args.End, result.Range), result.Radius);
-                    line = true;
-                    break;
-                case SkillShotType.SkillshotCircle:
-                    _skillshotAOE = new Geometry.Polygon.Circle(args.End, result.Radius);
-                    aoe = true;
-                    break;
-                case SkillShotType.SkillshotRing:
-                    _skillshotAOE = new Geometry.Polygon.Circle(args.End, result.Radius);
-                    aoe = true;
-                    break;
+                switch (result.Type)
+                {
+                    case SkillShotType.SkillshotLine:
+                        _skillshot = new Geometry.Polygon.Rectangle(sender.Position, sender.Position.Extend(args.End, result.Range), result.Radius);
+                        line = true;
+                        break;
+                    case SkillShotType.SkillshotMissileLine:
+                        _skillshot = new Geometry.Polygon.Rectangle(sender.Position, sender.Position.Extend(args.End, result.Range), result.Radius);
+                        line = true;
+                        break;
+                    case SkillShotType.SkillshotCircle:
+                        _skillshotAoe = new Geometry.Polygon.Circle(args.End, result.Radius);
+                        aoe = true;
+                        break;
+                    case SkillShotType.SkillshotRing:
+                        _skillshotAoe = new Geometry.Polygon.Circle(args.End, result.Radius);
+                        aoe = true;
+                        break;
+                }
             }
+
             foreach (
                 var enemy in
                     ObjectManager.Get<Obj_AI_Hero>()
                         .Where(enemy => enemy.IsEnemy && enemy.Distance(Player) <= Config.SubMenu("AutoCombo").Item("Range").GetValue<Slider>().Value))
             {
-                if (!aoe && !line && args.Target == enemy)
+                if (!aoe && !line && args.Target.Position == enemy.Position)
                 {
                     targetable = true;
                 }
@@ -140,8 +160,7 @@ namespace Autocombo
                 else
                 {
                     if (aoe)
-                    {
-                        
+                    { 
                         input = new PredictionInput
                         {
                             Unit = enemy,
@@ -157,37 +176,31 @@ namespace Autocombo
                         };
                     }
                 }
-                var output = Prediction.GetPrediction(input);
-
-                var unit = output.CastPosition;
-                if (line)
+                if (!targetable)
                 {
-                    if (!_skillshot.IsInside(unit) && !_skillshot.IsInside(enemy))
+                    var output = Prediction.GetPrediction(input);
+                    var unit = output.CastPosition;
+                    if (line)
                     {
-                        continue;
+                        if (!_skillshot.IsInside(unit) && !_skillshot.IsInside(enemy))
+                        {
+                            continue;
+                        }
                     }
-                }
-                else
-                {
-                    if (aoe)
+                    else
                     {
-                        if (!_skillshotAOE.IsInside(unit) && !_skillshotAOE.IsInside(enemy))
+                        if (!_skillshotAoe.IsInside(unit) && !_skillshotAoe.IsInside(enemy))
                         {
                             continue;
                         }
                     }
                 }
 
+                R.Cast(enemy.Position);
                 if (enemy.Distance(Player.Position) <= Config.SubMenu("AutoCombo").Item("Range").GetValue<Slider>().Value)
                 {
-                    if (!R.IsSkillshot) // Casting for targetable spells
-                    {
-                        R.CastOnUnit(enemy, true);
-                    }
-                    else
-                    {
-                        R.Cast(enemy);
-                    }
+                    R.Cast(enemy);
+                    R.CastOnUnit(enemy);
                 }
             }
         }
@@ -198,14 +211,14 @@ namespace Autocombo
             {
                 _skillshot.Draw(Color.Blue, 2);
             }
-            if (_skillshotAOE != null && Game.Time - drawTime <= 2)
+            if (_skillshotAoe != null && Game.Time - drawTime <= 2)
             {
-                _skillshotAOE.Draw(Color.Blue, 2);
+                _skillshotAoe.Draw(Color.Blue, 2);
             }
             if (Game.Time - drawTime > 2)
             {
                 _skillshot = null;
-                _skillshotAOE = null;
+                _skillshotAoe = null;
             }
             if (Config.SubMenu("AutoCombo").Item("Draw").GetValue<bool>())
             {
@@ -214,7 +227,7 @@ namespace Autocombo
 
         }
 
-        private void checkChamp()
+        private static void CheckChamp()
         {
             string[] champions = { "Ezreal", "Lux", "Ashe", "Draven", "Fizz", "Graves", "Riven", "Sona", "Jinx", "Caitlyn", "Riven" };
             for (int i = 0; i <= 9; i++)
@@ -226,7 +239,7 @@ namespace Autocombo
             }
         }
 
-        private void setUltimate()
+        private static void SetUltimate()
         {
             if (Player.BaseSkinName == "Ezreal")
             {
